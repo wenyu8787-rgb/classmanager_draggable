@@ -1,0 +1,3638 @@
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班級小管家</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    color: #4a5568;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* small logo icon (graduation cap) before title */
+.logo-icon {
+    width: 28px;
+    height: 28px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.header-right-group {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    gap: 2rem; /* Space between total score and class info */
+}
+
+.class-total-score {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #3182ce; /* A distinct color for the total score */
+    padding: 0.25rem 0.75rem;
+    background: rgba(197, 226, 255, 0.4); /* Light background */
+    border-radius: 6px;
+    border: 1px solid #90cdf4; /* Light border */
+}
+
+.class-info {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.toolbar {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: flex-end; /* Pushes the right-aligned buttons to the right */
+    align-items: flex-start; /* Align items to the top to prevent stretching of buttons */
+}
+
+/* New container for left-aligned groups */
+.left-toolbar-group {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    gap: 1rem; /* Space between class management and utility buttons */
+    margin-right: auto; /* Push this group to the left */
+}
+
+/* Adjust the class management group for new layout */
+.class-management-group {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap within this group */
+    gap: 1rem; /* Space between select and button */
+}
+
+/* New style for the utility buttons group */
+.utility-buttons-group {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap within this group */
+    gap: 1rem;
+}
+
+/* NEW: Style for the display options group */
+.display-options-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.display-options-group label {
+    font-size: 0.95rem;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+/* Adjust the specific select for class selection */
+#class-select {
+    min-width: 150px; /* Give it some width */
+    padding: 0.5rem 1rem;
+    border: 2px solid #667eea;
+    background: white; /* Make background white for better visibility */
+    color: #667eea;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: 'Noto Sans TC', sans-serif;
+    -webkit-appearance: none; /* Remove default arrow */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+}
+
+#class-select:hover {
+    background: #e0e7ff; /* Lighter background on hover */
+}
+
+#class-select:focus {
+    outline: none;
+    border-color: #5a67d8;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* NEW: Styles for the students per row select. Reusing action-btn styles */
+#students-per-row-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: 'Noto Sans TC', sans-serif;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+    min-width: 70px; /* Smaller width for number selection */
+}
+
+#students-per-row-select:hover {
+    background: #e0e7ff;
+}
+
+#students-per-row-select:focus {
+    outline: none;
+    border-color: #5a67d8;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.action-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #667eea;
+    background: transparent;
+    color: #667eea;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* New style for delete button to make it visually distinct */
+.action-btn.delete-btn {
+    border-color: #dc3545; /* Red border */
+    color: #dc3545; /* Red text */
+}
+
+.action-btn.delete-btn:hover {
+    background: #dc3545; /* Red background on hover */
+    color: white;
+}
+
+.students-grid {
+    display: grid;
+    /* Default is 4 columns. Updated by JS */
+    grid-template-columns: repeat(4, minmax(280px, 1fr)); /* Default to 4 columns */
+    gap: 1.5rem;
+    justify-content: center; /* center the grid block when columns don't fill the container */
+}
+
+/* NEW: Grid column configurations based on data attribute or classes */
+.students-grid[data-cols="2"] {
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+}
+
+.students-grid[data-cols="3"] {
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
+}
+
+.students-grid[data-cols="4"] {
+    grid-template-columns: repeat(4, minmax(280px, 1fr));
+}
+
+.students-grid[data-cols="5"] {
+    grid-template-columns: repeat(5, minmax(280px, 1fr));
+}
+
+.students-grid[data-cols="6"] {
+    grid-template-columns: repeat(6, minmax(280px, 1fr));
+}
+
+.student-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+/* New: position delete button at top-right of the student card */
+.student-card .delete-student {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 0.9rem;
+    box-shadow: none;
+}
+.student-card .delete-student:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.student-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.student-card.selected {
+    border: 3px solid #667eea;
+    transform: scale(1.02);
+}
+
+/* New style for drawn students */
+.student-card.drawn {
+    border: 3px solid #ffc107; /* Brighter yellow border */
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.7); /* Stronger glow */
+    animation: highlightPulse 1.5s infinite alternate; /* Continuous subtle pulse */
+}
+
+@keyframes highlightPulse {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(255, 193, 7, 0.9);
+        transform: scale(1.01);
+    }
+}
+
+.student-card.on-leave {
+    opacity: 0.7; /* Dim the card slightly */
+    filter: grayscale(50%); /* Desaturate to indicate inactive state */
+    border: 3px dashed #a0a0a0; /* Use a dashed grey border */
+    /* pointer-events: none; Remove this to allow card selection */
+}
+
+.student-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: bold;
+}
+
+.student-name {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #2d3748;
+}
+
+.student-score {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.student-score.positive {
+    color: #4CAF50;
+}
+
+.student-score.negative {
+    color: #f44336;
+}
+
+.student-score.neutral {
+    color: #666;
+}
+
+/* NEW: Styles for Homework Summary on Student Cards */
+.homework-summary {
+    text-align: center;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    display: flex; /* Use flexbox to align items */
+    flex-wrap: wrap; /* Allow items to wrap if too many */
+    justify-content: center; /* Center items horizontally */
+    gap: 0.5rem; /* Space between items */
+    min-height: 25px; /* Ensure some height even if empty */
+    align-items: center;
+}
+
+.homework-summary span {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.homework-not-submitted {
+    background-color: #fcebeb; /* Light red background */
+    color: #cc0000; /* Darker red text */
+    border: 1px solid #ffcccc;
+}
+
+.homework-to-be-corrected {
+    background-color: #fff9e6; /* Light orange background */
+    color: #e65100; /* Darker orange text */
+    border: 1px solid #ffe0b2;
+}
+
+.homework-all-clear {
+    background-color: #e6f7ea; /* Light green background */
+    color: #2e7d32; /* Darker green text */
+    border: 1px solid #c8e6c9;
+}
+
+.student-status {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.student-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem; /* Slightly reduced gap to fit three buttons */
+    margin-bottom: 1rem;
+}
+
+.student-action-btn {
+    padding: 0.75rem 1rem; /* Adjusted padding */
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem; /* Slightly smaller font size */
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 75px; /* Fixed width for consistency for all three buttons */
+}
+
+.student-action-btn.positive {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+}
+
+.student-action-btn.negative {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+    color: white;
+}
+
+/* New styles for leave/return button */
+.student-action-btn.leave-toggle {
+    background: linear-gradient(135deg, #a0a0a0, #808080); /* Grey for "請假" */
+    color: white;
+}
+
+.student-action-btn.leave-toggle.return {
+    background: linear-gradient(135deg, #4299e1, #3182ce); /* Blue for "返校" */
+    color: white;
+}
+
+.student-action-btn:hover:not([disabled]) { /* Apply hover only if not disabled */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.student-action-btn:active:not([disabled]) { /* Apply active only if not disabled */
+    transform: translateY(0);
+}
+
+/* Style for disabled buttons */
+.student-action-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.student-notes-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* New styles for notes header and toggle checkbox */
+.notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem; /* Space between header and the toggled content */
+    padding-bottom: 0.5rem; /* Padding below for a visual separator */
+    border-bottom: 1px dashed #e2e8f0; /* Optional: A subtle line */
+}
+
+.student-notes-section h4 {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0; /* Reset margin-bottom as it's now handled by .notes-header */
+}
+
+.toggle-notes-label {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #555;
+    cursor: pointer;
+}
+
+.toggle-notes-checkbox {
+    margin-right: 0.5rem;
+    cursor: pointer;
+    transform: scale(1.1); /* Slightly larger checkbox */
+}
+
+/* Class to hide the notes content by default */
+.notes-content-wrapper.hidden {
+    display: none;
+}
+
+.notes-input-group {
+    display: flex;
+    flex-direction: column; /* Stack select and textarea vertically */
+    gap: 0.5rem; /* Space between select and textarea */
+    margin-top: 0; /* Reset margin-top as it's now handled by .notes-header */
+}
+
+.predefined-notes-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 0.9rem;
+    background: #fdfdfd;
+    transition: border-color 0.3s ease;
+    cursor: pointer;
+    -webkit-appearance: none; /* Remove default browser styling for select */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+}
+
+.predefined-notes-select:focus:not([disabled]) {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.predefined-notes-select[disabled] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #6c757d;
+}
+
+/* NEW: Wrapper for predefined select and textarea */
+.important-info-input-group,
+.homework-input-group { /* Apply to homework-input-group as well */
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* Space between select and textarea */
+}
+
+/* NEW: Styles for the predefined info select */
+.predefined-info-select,
+.predefined-homework-select { /* Apply to homework select as well */
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 0.95rem;
+    background: #fdfdfd;
+    transition: border-color 0.3s ease;
+    cursor: pointer;
+    -webkit-appearance: none; /* Remove default browser styling for select */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+}
+
+.predefined-info-select:focus:not([disabled]),
+.predefined-homework-select:focus:not([disabled]) { /* Apply to homework select as well */
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.predefined-info-select[disabled],
+.predefined-homework-select[disabled] { /* Apply to homework select as well */
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #6c757d;
+}
+
+.student-notes-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 0.9rem;
+    resize: vertical;
+    background: #fdfdfd;
+    transition: border-color 0.3s ease;
+}
+
+.student-notes-input:focus:not([disabled]) { /* Focus style only if not disabled */
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Style for disabled notes input */
+.student-notes-input[disabled] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #6c757d;
+}
+
+.recent-actions {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+.recent-actions h4 {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.action-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    font-size: 0.8rem;
+}
+
+.action-time {
+    color: #999;
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+/* NEW: Styles for the Drawing Modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 200; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+    backdrop-filter: blur(5px); /* Blurred background */
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    animation: fadeInScale 0.3s ease-out forwards;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal h2 {
+    color: #4a5568;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+#drawing-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px dashed #e2e8f0; /* Optional: A subtle line */
+}
+
+#drawing-controls p {
+    font-size: 1.1rem;
+    color: #555;
+    font-weight: 500;
+}
+
+#drawing-controls p span {
+    font-weight: 700;
+    color: #667eea;
+}
+
+.drawing-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.drawing-input-group label {
+    font-size: 1rem;
+    color: #4a5568;
+}
+
+#num-to-draw {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    width: 80px;
+    text-align: center;
+    font-size: 1rem;
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+#num-to-draw:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.drawing-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.drawing-buttons .primary-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+}
+
+.drawing-buttons .primary-btn:hover {
+    background: linear-gradient(135deg, #5a67d8, #664190);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.drawing-buttons .secondary-btn {
+    background: #e2e8f0;
+    color: #4a5568;
+    border: 1px solid #cbd5e0;
+}
+
+.drawing-buttons .secondary-btn:hover {
+    background: #cbd5e0;
+    color: #2d3748;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.drawing-buttons button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#drawing-results {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#drawing-results h3, #drawing-history h4 {
+    font-size: 1.2rem;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+#drawn-student-display {
+    min-height: 80px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 2px dashed #a0aec0;
+    border-radius: 12px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #3182ce;
+    background-color: #e0e7ff;
+    text-align: center;
+}
+
+#drawn-student-display .drawn-name {
+    animation: pulseHighlight 1s ease-out forwards; /* Apply animation on new names */
+}
+
+@keyframes pulseHighlight {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+#drawn-student-display .placeholder-text {
+    font-size: 1.2rem;
+    color: #777;
+    font-weight: 400;
+}
+
+#drawing-history {
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    flex-grow: 1; /* Allow history to take available space */
+    overflow-y: auto; /* Scroll if too many items */
+    max-height: 200px; /* Max height for the list */
+}
+
+#drawn-students-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+#drawn-students-list li {
+    background-color: #bee3f8;
+    color: #2b6cb0;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Countdown Modal specific styles */
+.countdown-modal-content {
+    /* No specific max-width/height, it inherits from .modal-content max-width: 600px; */
+}
+
+#countdown-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Standard gap for modal sections */
+    align-items: center; /* Center items horizontally within settings */
+}
+
+.countdown-input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Space between minutes/seconds sections */
+}
+
+.countdown-input-wrapper {
+    display: flex;
+    align-items: stretch; /* Stretch children vertically to fill available height */
+    gap: 0.1rem; /* Make gap smaller for a tighter, more integrated look */
+}
+
+.countdown-controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Space out the increment/decrement buttons vertically */
+}
+
+.countdown-control-btn {
+    background: #e0e7ff;
+    border: 1px solid #a0c4ff;
+    color: #3182ce;
+    padding: 0; /* Remove padding, rely on flexbox for internal SVG centering */
+    font-size: 0.8rem; /* Smaller button text for up/down */
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex; /* To center SVG */
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* Ensure SVG doesn't make button too tall */
+    height: 50%; /* Each button takes half the height of the controls container */
+}
+
+.countdown-control-btn svg {
+    width: 1em; /* Control SVG size */
+    height: 1em;
+}
+
+.countdown-control-btn:hover {
+    background: #c5d7f7;
+}
+
+.countdown-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#countdown-minutes-input,
+#countdown-seconds-input {
+    width: 60px; /* Make it more compact by default */
+    padding: 0.75rem 0.5rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+#countdown-minutes-input:focus,
+#countdown-seconds-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+#countdown-display {
+    font-size: 4rem; /* Large display for time */
+    font-weight: 700;
+    color: #3182ce;
+    background-color: #e0e7ff;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    margin: 1.5rem 0; /* Space around the display */
+    min-width: 200px;
+    text-align: center;
+    border: 2px solid #a0c4ff;
+}
+
+.countdown-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Contact Book Modal specific styles */
+.contact-book-modal-content {
+    max-width: 800px; /* Adjusted max-width for better portrait fit */
+    max-height: 90vh;
+    padding: 30px;
+    gap: 1.5rem;
+    display: flex; /* Ensure flex for stacking header/body/footer */
+    flex-direction: column;
+}
+
+/* Default portrait styling for the body */
+.contact-book-modal-content .contact-book-body {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 1fr; /* Stacked columns for portrait by default */
+    gap: 1.5rem;
+    overflow-y: auto;
+}
+
+.contact-book-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.contact-book-header .contact-book-date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    gap: 0.5rem; /* Space between buttons and date */
+}
+
+#contact-book-date-display {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #3182ce;
+    min-width: 250px; /* Ensure space for full date text */
+}
+
+.date-nav-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 1.2rem;
+    background: #e0e7ff;
+    border: 1px solid #a0c4ff;
+    color: #3182ce;
+}
+
+.date-nav-button:hover {
+    background: #c5d7f7;
+    color: #2a65a3;
+}
+
+/* Styles for orientation buttons */
+.contact-book-orientation-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem; /* Space from date nav */
+}
+
+.contact-book-orientation-controls .action-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.contact-book-section h3 {
+    font-size: 1.2rem;
+    color: #4a5568;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.contact-book-section textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 1rem;
+    resize: vertical;
+    background: #fdfdfd;
+    transition: border-color 0.3s ease;
+}
+
+.contact-book-section textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.contact-book-footer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.contact-book-footer .action-btn.primary-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+}
+
+.contact-book-footer .action-btn.primary-btn:hover {
+    background: linear-gradient(135deg, #5a67d8, #664190);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+/* NEW: Style for the message when a class has no students */
+.no-students-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    padding: 2rem;
+    border: 2px dashed #a0aec0;
+    border-radius: 12px;
+    background-color: #f0f4f8;
+    margin-top: 2rem;
+    grid-column: 1 / -1; /* Make it span all columns in the grid */
+}
+
+.blackboard-content {
+    max-width: 90vw; /* Make it wider, almost full screen */
+    max-height: 90vh; /* Make it taller */
+    width: 90vw; /* Default width */
+    height: 90vh; /* Default height */
+    padding: 2rem;
+    background-color: #2b3a4a; /* Dark, blackboard-like background */
+    color: #e0e0e0; /* Light text for chalk effect */
+    border: 5px solid #8B4513; /* Wood-like border */
+    border-radius: 15px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow: hidden; /* Prevent content overflow for the main modal content */
+}
+
+.blackboard-content .close-button {
+    color: #e0e0e0;
+}
+
+.blackboard-content .close-button:hover,
+.blackboard-content .close-button:focus {
+    color: #ffffff;
+}
+
+.blackboard-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px dashed #6c7a89; /* Chalk-like dashed line */
+}
+
+.blackboard-header h2 {
+    font-size: 3.5rem; /* Very large title */
+    font-weight: 700;
+    color: #f0f0f0;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Subtle text shadow */
+}
+
+#blackboard-date-display {
+    font-size: 2.5rem; /* Large date */
+    font-weight: 500;
+    color: #b0c4de; /* Slightly different color for date */
+    margin-top: 1rem;
+}
+
+.blackboard-body {
+    flex-grow: 1; /* Allow body to take available space */
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for info and homework */
+    gap: 2rem;
+    overflow-y: auto; /* Scroll if content overflows vertically */
+    padding-right: 1rem; /* Padding for scrollbar */
+}
+
+.blackboard-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align section titles to the left */
+    gap: 0.75rem;
+}
+
+.blackboard-section h3 {
+    font-size: 2rem; /* Large section titles */
+    font-weight: 600;
+    color: #f0f0f0;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #99aab5; /* Subtle underline */
+}
+
+.blackboard-text-content {
+    font-size: 1.5rem; /* Large content text */
+    line-height: 1.8; /* Good line height for readability */
+    white-space: pre-wrap; /* Preserve whitespace and break lines */
+    text-align: left;
+    color: #e0e0e0;
+    flex-grow: 1;
+    width: 100%; /* Ensure it takes full width of its container */
+    overflow-wrap: break-word; /* Break long words */
+}
+
+/* NEW: Homework Check Modal specific styles */
+.homework-check-modal-content {
+    max-width: 700px; /* Adjusted max-width for better fit */
+    max-height: 90vh;
+    padding: 30px;
+    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.homework-check-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.homework-check-date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+}
+
+#homework-check-date-display {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #3182ce;
+    min-width: 250px;
+}
+
+.homework-check-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack children vertically */
+    gap: 1rem; /* Space between assignment display and student container */
+}
+
+/* NEW: Styles for the homework check grid container */
+.homework-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive grid for student cells */
+    gap: 10px; /* Gap between cells */
+    padding: 10px;
+    background-color: #f0f4f8;
+    border-radius: 8px;
+    min-height: 150px; /* Ensure some height even if empty */
+}
+
+.homework-student-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 5px; /* Smaller padding for compact cells */
+    border-radius: 6px;
+    font-size: 0.85rem; /* Smaller font size */
+    font-weight: 500;
+    color: white; /* White text for contrast on colored backgrounds */
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-align: center;
+    user-select: none; /* Prevent text selection on click */
+    height: 50px; /* Fixed height for consistent grid */
+    overflow: hidden; /* Hide overflowing names */
+    white-space: nowrap; /* Prevent name wrapping */
+    text-overflow: ellipsis; /* Add ellipsis if name overflows */
+}
+
+.homework-student-cell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Homework Status Colors */
+.homework-student-cell.status-submitted {
+    background-color: #4CAF50; /* Green */
+}
+
+.homework-student-cell.status-not-submitted {
+    background-color: #f44336; /* Red */
+}
+
+.homework-student-cell.status-to-be-corrected {
+    background-color: #FF9800; /* Orange */
+}
+
+/* NEW: Style for disabled homework cells when no homework is selected */
+.homework-student-cell.disabled-for-homework {
+    opacity: 0.6;
+    background-color: #e0e0e0; /* Grey background */
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.homework-student-cell.disabled-for-homework:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.homework-check-footer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+/* NEW: Styles for the homework check assignment display */
+.homework-check-assignment-display {
+    margin-bottom: 15px; /* Space between homework dropdown and student grid */
+    padding: 10px 15px;
+    background-color: #f8faff;
+    border: 1px solid #e0e7ff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.homework-check-assignment-display label {
+    font-size: 1rem;
+    color: #4a5568;
+    font-weight: 500;
+    flex-shrink: 0; /* Prevent label from shrinking */
+}
+
+/* Reuse existing predefined-homework-select styles for consistency */
+#homework-to-check-select {
+    flex-grow: 1; /* Allow select to take available space */
+    min-width: 150px; /* Ensure it has a reasonable min-width */
+}
+
+/* NEW: Settings Modal responsiveness */
+.settings-modal-content {
+    max-width: 600px;
+    max-height: 90vh;
+    padding: 30px;
+    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px; /* For scrollbar */
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.settings-section {
+    background-color: #f8faff;
+    border: 1px solid #e0e7ff;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.settings-section h3 {
+    font-size: 1.2rem;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.settings-section textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 0.95rem;
+    resize: vertical;
+    background: #fdfdfd;
+    transition: border-color 0.3s ease;
+}
+
+.settings-section textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.setting-hint {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+.settings-footer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .header-right-group {
+        flex-direction: column; /* Stack total score and class info vertically */
+        gap: 0.5rem;
+    }
+
+    .class-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .toolbar-actions {
+        flex-direction: column;
+        align-items: stretch; /* Stretch items to fill container */
+    }
+    
+    .left-toolbar-group {
+        width: 100%; /* Take full width on small screens */
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .class-management-group,
+    .utility-buttons-group {
+        flex-direction: column; /* Stack buttons vertically within these groups */
+        gap: 0.5rem;
+    }
+
+    /* NEW: Display options group on small screens */
+    .display-options-group {
+        flex-direction: row; /* Keep label and select inline */
+        justify-content: center; /* Center them */
+        width: 100%;
+        margin: 0.5rem 0; /* Adjust margin for spacing */
+    }
+
+    /* Make all buttons within these groups take full width on small screens */
+    .class-management-group > *,
+    .utility-buttons-group > * {
+        width: 100%;
+    }
+
+    #class-select {
+        width: 100%; /* Full width for select */
+    }
+
+    #students-per-row-select {
+        flex-grow: 1; /* Allow select to grow */
+        max-width: 100px; /* Keep it relatively small */
+    }
+
+    .students-grid {
+        grid-template-columns: 1fr; /* On small screens, always 1 column */
+        justify-content: center; /* ensure centered on small screens too */
+    }
+    .students-grid[data-cols="2"],
+    .students-grid[data-cols="3"],
+    .students-grid[data-cols="4"],
+    .students-grid[data-cols="5"],
+    .students-grid[data-cols="6"] {
+        grid-template-columns: 1fr; /* Override with 1 column for small screens */
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .modal h2 {
+        font-size: 1.5rem;
+    }
+
+    #drawn-student-display {
+        font-size: 1.5rem;
+    }
+
+    .drawing-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .drawing-buttons button {
+        width: 100%;
+    }
+
+    /* Countdown Modal responsiveness */
+    .countdown-input-group {
+        flex-wrap: wrap; /* Allow inputs to wrap */
+        justify-content: center;
+        width: 100%;
+        gap: 1rem; /* Adjust gap for smaller screens */
+    }
+    
+    .countdown-input-wrapper {
+        gap: 0.25rem; /* Smaller gap in wrapper on mobile for better touch target */
+    }
+
+    .countdown-input-group label {
+        flex-basis: 100%; /* Labels take full width */
+        text-align: center;
+        margin-bottom: 0.25rem;
+    }
+
+    #countdown-display {
+        font-size: 3rem; /* Smaller font on mobile */
+        padding: 0.8rem 1.5rem;
+    }
+
+    .countdown-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .countdown-buttons button {
+        width: 100%;
+    }
+
+    /* Contact Book Modal responsiveness */
+    .contact-book-modal-content {
+        width: 95%;
+        padding: 20px;
+        gap: 1rem;
+    }
+
+    .contact-book-modal-content .contact-book-header {
+        flex-direction: column; /* Stack header elements */
+        align-items: center;
+        padding-bottom: 1rem;
+    }
+    .contact-book-modal-content .contact-book-date-nav {
+        flex-direction: row; /* Keep date nav inline */
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 1rem; /* Space between date nav and orientation controls */
+    }
+
+    .contact-book-modal-content .contact-book-body {
+        grid-template-columns: 1fr; /* Always stack content sections on small screens */
+        gap: 1.5rem;
+    }
+    
+    .important-info-input-group,
+    .homework-input-group { /* Ensure it still stacks vertically on small screens */
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    #contact-book-date-display {
+        font-size: 1.8rem; /* Smaller magnified date on mobile */
+        min-width: unset; /* Allow it to shrink */
+        flex-grow: 1;
+    }
+
+    .date-nav-button {
+        padding: 0.4rem 0.6rem;
+    }
+
+    .contact-book-section h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .contact-book-section textarea {
+        min-height: 100px;
+        font-size: 0.95rem;
+    }
+
+    .contact-book-footer {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        gap: 0.75rem;
+    }
+    .contact-book-footer .action-btn {
+        width: 100%; /* Make buttons full width */
+    }
+
+    .blackboard-content {
+        width: 95vw;
+        height: 95vh;
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+
+    .blackboard-header h2 {
+        font-size: 2.5rem;
+    }
+
+    #blackboard-date-display {
+        font-size: 1.8rem;
+    }
+
+    .blackboard-body {
+        grid-template-columns: 1fr; /* Stack sections on small screens */
+        gap: 1.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .blackboard-section h3 {
+        font-size: 1.5rem;
+    }
+
+    .blackboard-text-content {
+        font-size: 1.2rem;
+        line-height: 1.6;
+    }
+
+    /* NEW: Homework Check Modal responsiveness */
+    .homework-check-modal-content {
+        width: 95%;
+        padding: 20px;
+        gap: 1rem;
+    }
+
+    #homework-check-date-display {
+        font-size: 1.8rem;
+        min-width: unset;
+        flex-grow: 1;
+    }
+
+    .homework-check-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive grid for student cells */
+        gap: 10px; /* Gap between cells */
+        padding: 10px;
+        background-color: #f0f4f8;
+        border-radius: 8px;
+        min-height: 150px; /* Ensure some height even if empty */
+    }
+
+    /* NEW: Homework assignment display responsiveness */
+    .homework-check-assignment-display {
+        flex-direction: column; /* Stack label and select vertically on small screens */
+        align-items: flex-start; /* Align text to left */
+        gap: 0.5rem;
+    }
+
+    .homework-check-assignment-display label {
+        width: 100%;
+        text-align: left;
+    }
+
+    #homework-to-check-select {
+        width: 100%; /* Full width for select on small screens */
+        min-width: unset;
+    }
+
+    /* NEW: Settings Modal responsiveness */
+    .settings-modal-content {
+        width: 95%;
+        padding: 20px;
+        gap: 1rem;
+    }
+}
+
+.student-card.dragging {
+    opacity: 0.5;
+    border: 2px dashed #667eea;
+}
+
+</style>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1><svg class="logo-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="28" height="28" role="img"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#2b6cb0"/><path d="M4 10v8a1 1 0 0 0 1 1h4v-5h6v5h4a1 1 0 0 0 1-1v-8L12 15 4 10z" fill="#2c7a7b"/></svg>班級小管家</h1>
+            <div class="header-right-group">
+                <div class="class-total-score">
+                    總分：<span id="total-class-score">0</span>
+                </div>
+                <div class="class-student-count">
+                    學生數：<span id="class-student-count">0</span>
+                </div>
+                <div class="class-info">
+                    <span id="class-display-name">班級：五年三班</span>
+                    <span>日期：<span id="current-date"></span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="toolbar">
+            <div class="toolbar-actions">
+                <div class="left-toolbar-group">
+                    <div class="class-management-group">
+                        <select id="class-select" class="action-btn"></select>
+                        <button id="add-class-btn" class="action-btn">➕ 新增班級</button>
+                        <button id="delete-class-btn" class="action-btn delete-btn">🗑️ 刪除班級</button>
+                        <button id="add-students-text-btn" class="action-btn">➕ 加入學生名單</button>
+                        <button id="open-settings-btn" class="action-btn">⚙️ 下拉選單設定</button>
+                        <div id="add-students-text-wrapper" style="display:none; width:320px;">
+                            <textarea id="add-students-textarea" placeholder="每行輸入一位學生姓名" style="width:100%; height:100px; margin-top:8px; padding:8px; border-radius:8px; border:1px solid #cbd5e0;"></textarea>
+                            <div style="display:flex; gap:8px; margin-top:8px;">
+                                <button id="confirm-add-students-btn" class="action-btn">加入</button>
+                                <button id="cancel-add-students-btn" class="action-btn">取消</button>
+                            </div>
+                        </div>
+                        <div class="display-options-group">
+                            <label for="students-per-row-select">每列學生數:</label>
+                            <select id="students-per-row-select" class="action-btn">
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4" selected>4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="utility-buttons-group">
+                        <button id="draw-students-btn" class="action-btn">🎲 抽籤</button>
+                        <button id="countdown-btn" class="action-btn">⏱️ 倒數計時</button>
+                        <button id="contact-book-btn" class="action-btn">📝 連絡簿</button>
+                        <button id="homework-check-btn" class="action-btn">✅ 作業檢查</button>
+                        <button id="export-btn" class="action-btn">📊 匯出JSON</button>
+                        <button id="import-data-btn" class="action-btn">📥 匯入JSON</button>
+                        <input type="file" id="data-file-input" accept=".json" style="display: none;">
+                        <button id="export-excel-btn" class="action-btn">📈 匯出Excel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="students-grid" id="students-grid">
+            <!-- Students will be dynamically generated here -->
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- Drawing Modal Structure -->
+    <div id="drawing-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="drawing-modal-close">&times;</span>
+            <h2>🎲 學生抽籤</h2>
+            <div id="drawing-controls">
+                <p>班級: <span id="drawing-class-name"></span></p>
+                <p>剩餘學生: <span id="drawing-available-count">0</span> 人</p>
+                <div class="drawing-input-group">
+                    <label for="num-to-draw">每次抽取人數:</label>
+                    <input type="number" id="num-to-draw" value="1" min="1">
+                </div>
+                <div class="drawing-buttons">
+                    <button id="start-draw-btn" class="action-btn primary-btn">開始抽籤</button>
+                    <button id="reset-draw-btn" class="action-btn secondary-btn">重置</button>
+                </div>
+            </div>
+            <div id="drawing-results">
+                <h3>本次抽中:</h3>
+                <div id="drawn-student-display">
+                    <!-- Latest drawn students will appear here -->
+                    <p class="placeholder-text">點擊「開始抽籤」</p>
+                </div>
+                <div id="drawing-history">
+                    <h4>已抽中學生列表:</h4>
+                    <ul id="drawn-students-list">
+                        <!-- All drawn students will be listed here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Modal Structure -->
+    <div id="countdown-modal" class="modal">
+        <div class="modal-content countdown-modal-content">
+            <span class="close-button" id="countdown-modal-close">&times;</span>
+            <h2>⏱️ 倒數計時</h2>
+            <div id="countdown-settings">
+                <div class="countdown-input-group">
+                    <label for="countdown-minutes-input">分:</label>
+                    <div class="countdown-input-wrapper">
+                        <input type="number" id="countdown-minutes-input" value="5" min="0" max="99">
+                        <div class="countdown-controls">
+                            <button class="countdown-control-btn" data-action="increment" data-target="minutes">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8l-6 6h12z"/></svg>
+                            </button>
+                            <button class="countdown-control-btn" data-action="decrement" data-target="minutes">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l6-6H6z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <label for="countdown-seconds-input">秒:</label>
+                    <div class="countdown-input-wrapper">
+                        <input type="number" id="countdown-seconds-input" value="0" min="0" max="59">
+                        <div class="countdown-controls">
+                            <button class="countdown-control-btn" data-action="increment" data-target="seconds">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8l-6 6h12z"/></svg>
+                            </button>
+                            <button class="countdown-control-btn" data-action="decrement" data-target="seconds">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l6-6H6z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="countdown-display">05:00</div>
+                <div class="countdown-buttons">
+                    <button id="start-countdown-btn" class="action-btn primary-btn">開始</button>
+                    <button id="pause-countdown-btn" class="action-btn secondary-btn" disabled>暫停</button>
+                    <button id="reset-countdown-btn" class="action-btn secondary-btn">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Book Modal Structure -->
+    <div id="contact-book-modal" class="modal">
+        <div class="modal-content contact-book-modal-content">
+            <span class="close-button" id="contact-book-modal-close">&times;</span>
+            <h2>📝 連絡簿</h2>
+            <div class="contact-book-header">
+                <div class="contact-book-date-nav">
+                    <button id="prev-day-btn" class="action-btn date-nav-button">◀︎</button>
+                    <div id="contact-book-date-display">2023年10月27日 星期五</div>
+                    <button id="next-day-btn" class="action-btn date-nav-button">▶︎</button>
+                </div>
+                <div class="contact-book-orientation-controls">
+                </div>
+            </div>
+            <div class="contact-book-body">
+                <div class="contact-book-section important-info-section">
+                    <h3>重要資訊</h3>
+                    <div class="important-info-input-group">
+                        <select id="predefined-info-select" class="predefined-info-select">
+                            <option value="">請選擇重要資訊</option>
+                            <!-- Options will be dynamically populated by JS -->
+                        </select>
+                        <textarea id="important-info-textarea" placeholder="例如：明天帶美術用具、穿體育服裝..."></textarea>
+                    </div>
+                </div>
+                <div class="contact-book-section homework-section">
+                    <h3>回家作業</h3>
+                    <div class="homework-input-group">
+                        <select id="predefined-homework-select" class="predefined-homework-select">
+                            <option value="">請選擇回家作業</option>
+                            <!-- Options will be dynamically populated by JS -->
+                        </select>
+                        <textarea id="homework-textarea" placeholder="例如：國語習作第八課、數學習作P.30..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="contact-book-footer">
+                <button id="save-contact-book-btn" class="action-btn primary-btn">保存</button>
+                <button id="show-blackboard-btn" class="action-btn">顯示</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blackboard Display Modal Structure -->
+    <div id="blackboard-modal" class="modal">
+        <div class="modal-content blackboard-content">
+            <span class="close-button" id="blackboard-modal-close">&times;</span>
+            <div class="blackboard-header">
+                <h2>今日聯絡簿</h2>
+                <div id="blackboard-date-display"></div>
+            </div>
+            <div class="blackboard-body">
+                <div class="blackboard-section">
+                    <h3>重要資訊</h3>
+                    <div id="blackboard-important-info-display" class="blackboard-text-content"></div>
+                </div>
+                <div class="blackboard-section">
+                    <h3>回家作業</h3>
+                    <div id="blackboard-homework-display" class="blackboard-text-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Homework Check Modal Structure -->
+    <div id="homework-check-modal" class="modal">
+        <div class="modal-content homework-check-modal-content">
+            <span class="close-button" id="homework-check-modal-close">&times;</span>
+            <h2>✅ 作業檢查</h2>
+            <div class="homework-check-header">
+                <div class="homework-check-date-nav">
+                    <button id="homework-check-prev-day-btn" class="action-btn date-nav-button">◀︎</button>
+                    <div id="homework-check-date-display"></div>
+                    <button id="homework-check-next-day-btn" class="action-btn date-nav-button">▶︎</button>
+                </div>
+            </div>
+            <div class="homework-check-body">
+                <div class="homework-check-assignment-display">
+                    <label for="homework-to-check-select">今日作業：</label>
+                    <select id="homework-to-check-select" class="predefined-homework-select">
+                        <option value="">請選擇或查看前一天聯絡簿</option>
+                    </select>
+                </div>
+                <div id="homework-check-students-container" class="homework-check-grid">
+                    <!-- Student cells will be dynamically generated here -->
+                    <p class="no-students-message">班級中沒有學生。</p>
+                </div>
+            </div>
+            <div class="homework-check-footer">
+                <button id="save-homework-check-btn" class="action-btn primary-btn">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal Structure -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content settings-modal-content">
+            <span class="close-button" id="settings-modal-close">&times;</span>
+            <h2>⚙️ 系統設定</h2>
+            <div class="settings-body">
+                <div class="settings-section">
+                    <h3>特殊表現記錄預設選項</h3>
+                    <textarea id="predefined-behaviors-input" placeholder="每行一個選項，例如：&#10;主動協助同學&#10;積極發言"></textarea>
+                    <p class="setting-hint">這些選項會出現在每位學生的「特殊表現記錄」下拉選單中。</p>
+                </div>
+                <div class="settings-section">
+                    <h3>連絡簿重要資訊預設選項</h3>
+                    <textarea id="predefined-info-input" placeholder="每行一個選項，例如：&#10;明天帶美術用具&#10;下週一體育課請穿體育服"></textarea>
+                    <p class="setting-hint">這些選項會出現在「連絡簿」的「重要資訊」下拉選單中。</p>
+                </div>
+                <div class="settings-section">
+                    <h3>連絡簿回家作業預設選項</h3>
+                    <textarea id="predefined-homework-input" placeholder="每行一個選項，例如：&#10;國語第1課生字&#10;數學習作P3~P5"></textarea>
+                    <p class="setting-hint">這些選項會出現在「連絡簿」的「回家作業」下拉選單中。</p>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <button id="save-settings-btn" class="action-btn primary-btn">儲存設定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+class StudentManager {
+    constructor() {
+        this.classes = []; 
+        this.currentClassId = null; 
+        this.selectedStudent = null; 
+        this.predefinedBehaviors = [ 
+            '主動協助同學',
+            '積極發言',
+            '作業準時繳交',
+            '熱心助人',
+            '分組表現優異',
+            '上課不專心',
+            '與同學爭吵',
+            '遲交作業',
+            '未帶文具',
+            '影響他人'
+        ];
+
+        this.drawingModal = document.getElementById('drawing-modal');
+        this.drawingModalCloseBtn = document.getElementById('drawing-modal-close');
+        this.drawingClassNameSpan = document.getElementById('drawing-class-name');
+        this.drawingAvailableCountSpan = document.getElementById('drawing-available-count');
+        this.numToDrawInput = document.getElementById('num-to-draw');
+        this.startDrawBtn = document.getElementById('start-draw-btn');
+        this.resetDrawBtn = document.getElementById('reset-draw-btn');
+        this.drawnStudentDisplay = document.getElementById('drawn-student-display');
+        this.drawnStudentsList = document.getElementById('drawn-students-list');
+
+        this.availableForDraw = []; 
+        this.overallDrawnStudents = []; 
+
+        this.countdownModal = document.getElementById('countdown-modal');
+        this.countdownModalCloseBtn = document.getElementById('countdown-modal-close');
+        this.countdownMinutesInput = document.getElementById('countdown-minutes-input');
+        this.countdownSecondsInput = document.getElementById('countdown-seconds-input');
+        this.countdownDisplay = document.getElementById('countdown-display');
+        this.startCountdownBtn = document.getElementById('start-countdown-btn');
+        this.pauseCountdownBtn = document.getElementById('pause-countdown-btn');
+        this.resetCountdownBtn = document.getElementById('reset-countdown-btn');
+        this.countdownControlBtns = document.querySelectorAll('.countdown-control-btn'); 
+        this.countdownInterval = null; // Initialize countdown interval
+
+        this.classStudentCountSpan = document.getElementById('class-student-count'); // NEW: student count display
+
+        this.contactBookModal = document.getElementById('contact-book-modal');
+        this.contactBookModalContent = this.contactBookModal.querySelector('.modal-content');
+        this.contactBookModalCloseBtn = document.getElementById('contact-book-modal-close');
+        this.prevDayBtn = document.getElementById('prev-day-btn');
+        this.nextDayBtn = document.getElementById('next-day-btn');
+        this.contactBookDateDisplay = document.getElementById('contact-book-date-display');
+        this.importantInfoTextarea = document.getElementById('important-info-textarea');
+        this.homeworkTextarea = document.getElementById('homework-textarea');
+        this.saveContactBookBtn = document.getElementById('save-contact-book-btn');
+        this.predefinedInfoSelect = document.getElementById('predefined-info-select'); 
+        this.predefinedHomeworkSelect = document.getElementById('predefined-homework-select'); 
+        this.showBlackboardBtn = document.getElementById('show-blackboard-btn'); 
+
+        this.blackboardModal = document.getElementById('blackboard-modal');
+        this.blackboardModalCloseBtn = document.getElementById('blackboard-modal-close');
+        this.blackboardDateDisplay = document.getElementById('blackboard-date-display');
+        this.blackboardImportantInfoDisplay = document.getElementById('blackboard-important-info-display');
+        this.blackboardHomeworkDisplay = document.getElementById('blackboard-homework-display');
+
+        this.currentContactBookDate = new Date(); 
+        this.predefinedImportantInfos = [ 
+            '明天帶美術用具',
+            '下週一體育課請穿體育服',
+            '繳交綜合活動學習單',
+            '校外教學活動通知單已發放',
+            '班級旅遊費用請於本週內繳交',
+            '明天有數學小考',
+            '參加語文競賽',
+            '校園環境打掃活動'
+        ];
+        this.predefinedHomeworks = [ 
+            '國語第1課生字',
+            '圈詞',
+            '查生字',
+            '國語習作第1課',
+            '數學課本第1頁',
+            '數學習作P3~P5'
+        ];
+
+        this.homeworkCheckModal = document.getElementById('homework-check-modal');
+        this.homeworkCheckModalCloseBtn = document.getElementById('homework-check-modal-close');
+        this.homeworkCheckPrevDayBtn = document.getElementById('homework-check-prev-day-btn');
+        this.homeworkCheckNextDayBtn = document.getElementById('homework-check-next-day-btn');
+        this.homeworkCheckDateDisplay = document.getElementById('homework-check-date-display');
+        this.homeworkCheckStudentsContainer = document.getElementById('homework-check-students-container');
+        this.saveHomeworkCheckBtn = document.getElementById('save-homework-check-btn');
+        this.homeworkToCheckSelect = document.getElementById('homework-to-check-select');
+
+        this.currentHomeworkCheckDate = new Date();
+        this.homeworkStatusCycle = ['submitted', 'not-submitted', 'to-be-corrected'];
+        this.homeworkStatusDisplayText = {
+            'submitted': '已繳交',
+            'not-submitted': '未繳交',
+            'to-be-corrected': '待訂正'
+        };
+        this.homeworkStatusReverseMap = {
+            '已繳交': 'submitted',
+            '未繳交': 'not-submitted',
+            '待訂正': 'to-be-corrected'
+        };
+        this.selectedHomeworkItem = null;
+
+        this.studentsPerRow = localStorage.getItem('studentsPerRow') ? 
+                              parseInt(localStorage.getItem('studentsPerRow'), 10) : 4; 
+
+        this.settingsModal = document.getElementById('settings-modal');
+        this.settingsModalCloseBtn = document.getElementById('settings-modal-close');
+        this.predefinedBehaviorsInput = document.getElementById('predefined-behaviors-input');
+        this.predefinedInfoInput = document.getElementById('predefined-info-input');
+        this.predefinedHomeworkInput = document.getElementById('predefined-homework-input');
+        this.saveSettingsBtn = document.getElementById('save-settings-btn');
+
+        this.addStudentsTextBtn = document.getElementById('add-students-text-btn');
+        this.addStudentsTextWrapper = document.getElementById('add-students-text-wrapper');
+        this.addStudentsTextarea = document.getElementById('add-students-textarea');
+        this.confirmAddStudentsBtn = document.getElementById('confirm-add-students-btn');
+        this.cancelAddStudentsBtn = document.getElementById('cancel-add-students-btn');
+
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.drawSoundBuffer = null;
+        this.countdownSoundBuffer = null; 
+        this.loadSound('draw_sound.mp3', 'draw');
+        this.loadSound('countdown_end_sound.mp3', 'countdown'); 
+
+        this.init();
+    }
+
+    generateDefaultStudents() {
+        const names = [
+            '王小明', '李小華', '陳小美', '張志強', '林雅婷',
+            '黃建宏', '吳佳穎', '劉俊傑', '蔡雅文', '鄭志豪',
+            '謝美玲', '洪子軒', '葉淑芬', '沈家豪', '戴佳玲',
+            '范志明', '曾雅雯', '呂建華', '蘇小芬', '許志偉'
+        ];
+
+        return names.map((name, index) => ({
+            id: index + 1,
+            name: name,
+            score: 0,
+            actions: [],
+            avatar: name.charAt(0),
+            notes: '', 
+            onLeave: false 
+        }));
+    }
+
+    generateDemoStudents() {
+        const names = [
+            '王小明', '李小華', '陳小美', '張志強', '林雅婷'
+        ];
+        return names.map((name, index) => ({
+            id: Date.now() + index, 
+            name: name,
+            score: 0,
+            actions: [],
+            avatar: name.charAt(0),
+            notes: '',
+            onLeave: false
+        }));
+    }
+
+    formatDateForStorage(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    formatDateForDisplay(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/');
+    }
+
+    formatDateFromDisplayToStorage(displayDateString) {
+        if (!displayDateString) return null;
+        const parts = displayDateString.split('/');
+        if (parts.length === 3) {
+            const year = parts[0];
+            const month = parts[1].padStart(2, '0');
+            const day = parts[2].padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        return null;
+    }
+
+    init() {
+        console.log('StudentManager init started.');
+        const grid = document.getElementById('students-grid');
+        if (!grid) {
+            console.error('Error: #students-grid element not found!');
+            return;
+        }
+        console.log('#students-grid element found.');
+
+        this.loadData();
+        
+        let shouldRenderStudentsExplicitly = true;
+
+        if (this.classes.length === 0) {
+            console.log('No classes found on first run — starting with no classes. Use 「新增班級」建立新班級。');
+            // Keep currentClassId as null and allow user to add classes manually.
+            this.currentClassId = null;
+            shouldRenderStudentsExplicitly = true;
+        } else {
+            if (this.currentClassId === null || !this.classes.some(cls => cls.id === this.currentClassId)) {
+                console.warn('currentClassId is invalid or not set, defaulting to first available class.');
+                this.currentClassId = this.classes[0].id; 
+                this.saveData(); 
+            }
+
+            this.classes.forEach(cls => {
+                if (!cls.contactBookEntries) cls.contactBookEntries = {};
+                if (!cls.homeworkCheckEntries) {
+                    cls.homeworkCheckEntries = {};
+                }
+                cls.students.forEach(student => {
+                    if (typeof student.notes === 'undefined') student.notes = '';
+                    if (typeof student.onLeave === 'undefined') student.onLeave = false;
+                });
+                for (const dateKey in cls.homeworkCheckEntries) {
+                    if (Object.hasOwnProperty.call(cls.homeworkCheckEntries, dateKey)) {
+                        const dateEntry = cls.homeworkCheckEntries[dateKey];
+                        const firstKey = Object.keys(dateEntry)[0];
+                        if (firstKey && dateEntry[firstKey] && typeof dateEntry[firstKey].status !== 'undefined' && typeof dateEntry[firstKey].status === 'string') {
+                             const migratedEntry = { '預設作業': {} };
+                             for (const studentId in dateEntry) {
+                                if (Object.hasOwnProperty.call(dateEntry, studentId)) {
+                                    migratedEntry['預設作業'][studentId] = dateEntry[studentId];
+                                }
+                             }
+                             cls.homeworkCheckEntries[dateKey] = migratedEntry;
+                        }
+
+                        for (const homeworkItem in cls.homeworkCheckEntries[dateKey]) {
+                            if (Object.hasOwnProperty.call(cls.homeworkCheckEntries[dateKey], homeworkItem)) {
+                                cls.students.forEach(student => {
+                                    if (!cls.homeworkCheckEntries[dateKey][homeworkItem][student.id]) {
+                                        cls.homeworkCheckEntries[dateKey][homeworkItem][student.id] = { status: 'submitted' }; 
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        this.renderClassSelector();
+        if (shouldRenderStudentsExplicitly) {
+            this.renderStudents(); 
+        }
+        this.bindEvents();
+        this.updateCurrentDate();
+        this.updateTotalClassScore(); 
+        this.updateCountdownDisplay(); 
+        this.renderContactBook(); 
+        this.initializeStudentsPerRowSelect(); 
+        console.log('StudentManager init finished.');
+    }
+
+    addFirstTimeDemoClass(name) {
+        const newClass = {
+            id: Date.now(), 
+            name: name,
+            students: this.generateDemoStudents(), 
+            contactBookEntries: {}, 
+            homeworkCheckEntries: {} 
+        };
+        this.classes.push(newClass);
+        this.currentClassId = newClass.id; 
+        this.saveData(); 
+        this.renderStudents(); 
+        this.renderClassSelector(); 
+        this.showToast(`已新增「${name}」班級，並載入示範學生`);
+    }
+
+    renderStudents() {
+        const grid = document.getElementById('students-grid');
+        grid.innerHTML = '';
+
+        grid.setAttribute('data-cols', this.studentsPerRow);
+
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) {
+            grid.innerHTML = '<p class="no-students-message">請選擇或新增一個班級。</p>';
+            this.updateTotalClassScore();
+            this.updateClassInfoDisplay(); 
+            return;
+        }
+
+        if (currentClass.students.length === 0) {
+            grid.innerHTML = '<p class="no-students-message">班級中沒有學生，請點擊「匯入學生名單」新增學生。</p>';
+            this.updateTotalClassScore(); 
+            this.updateClassInfoDisplay(); 
+            return;
+        }
+
+        const todayDateKey = this.formatDateForStorage(new Date()); // Get today's date for summary
+
+        currentClass.students.forEach(student => {
+            const homeworkSummary = this.getStudentHomeworkSummaryForDate(student.id, todayDateKey); // Calculate summary
+            const card = this.createStudentCard(student, homeworkSummary); // Pass summary to create card
+            grid.appendChild(card);
+        });
+
+        if (this.selectedStudent && this.selectedStudent.classId === currentClass.id) {
+             this.selectStudent(this.selectedStudent.id);
+        } else {
+             this.selectedStudent = null; 
+        }
+
+        this.overallDrawnStudents.forEach(studentId => {
+            const card = document.querySelector(`[data-student-id="${studentId}"]`);
+            if (card) {
+                card.classList.add('drawn');
+            }
+        });
+
+        this.updateTotalClassScore(); 
+        this.updateClassInfoDisplay();
+    }
+
+    createStudentCard(student, homeworkSummary) {
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        card.dataset.studentId = student.id;
+
+        const isDisabled = student.onLeave ? 'disabled' : '';
+
+        // Determine score class based on score value
+        let scoreClass = 'neutral';
+        if (student.score > 0) {
+            scoreClass = 'positive';
+        } else if (student.score < 0) {
+            scoreClass = 'negative';
+        }
+
+        // Default homeworkSummary if not provided (e.g., if a student card is created directly, though usually it comes from renderStudents)
+        homeworkSummary = homeworkSummary || { notSubmitted: 0, toBeCorrected: 0 };
+
+        card.innerHTML = `
+            <button class="student-action-btn delete-student" title="刪除學生">🗑️</button>
+            <div class="student-avatar">${student.avatar}</div>
+            <div class="student-name">${student.name}</div>
+            <div class="student-score ${scoreClass}">${student.score}</div>
+            
+            <div class="homework-summary">
+                ${homeworkSummary.notSubmitted > 0 ? `<span class="homework-not-submitted">未繳交: ${homeworkSummary.notSubmitted}</span>` : ''}
+                ${homeworkSummary.toBeCorrected > 0 ? `<span class="homework-to-be-corrected">待訂正: ${homeworkSummary.toBeCorrected}</span>` : ''}
+            </div>
+
+            <div class="student-actions">
+                <button class="student-action-btn positive" data-points="1" data-type="positive" ${isDisabled}>+1</button>
+                <button class="student-action-btn negative" data-points="1" data-type="negative" ${isDisabled}>-1</button>
+                <button class="student-action-btn leave-toggle ${student.onLeave ? 'return' : ''}">${student.onLeave ? '返校' : '請假'}</button>
+            </div>
+            <div class="student-notes-section">
+                <div class="notes-header">
+                    <h4>特殊表現記錄</h4>
+                    <label class="toggle-notes-label">
+                        <input type="checkbox" class="toggle-notes-checkbox"> 顯示
+                    </label>
+                </div>
+                <div class="notes-content-wrapper hidden">
+                    <div class="notes-input-group">
+                        <select class="predefined-notes-select" ${isDisabled}>
+                            <option value="">請選擇常用表現</option>
+                            ${this.predefinedBehaviors.map(behavior => `<option value="${behavior}">${behavior}</option>`).join('')}
+                        </select>
+                        <textarea class="student-notes-input" placeholder="記錄學生的特殊表現..." ${isDisabled}>${student.notes}</textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', (event) => {
+            if (!event.target.closest('.student-action-btn') && 
+                !event.target.closest('.student-notes-input') && 
+                !event.target.closest('.predefined-notes-select') &&
+                !event.target.closest('.toggle-notes-label')) { 
+                this.selectStudent(student.id);
+            }
+        });
+
+        card.querySelector('.student-action-btn.positive').addEventListener('click', () => {
+            if (!student.onLeave) {
+                this.updateStudentScore(student.id, 1, '表現良好 (+1)');
+            } else {
+                this.showToast(`${student.name} 請假中，無法加分`);
+            }
+        });
+        card.querySelector('.student-action-btn.negative').addEventListener('click', () => {
+            if (!student.onLeave) {
+                this.updateStudentScore(student.id, -1, '需要提醒 (-1)');
+            } else {
+                this.showToast(`${student.name} 請假中，無法扣分`);
+            }
+        });
+
+        card.querySelector('.student-action-btn.leave-toggle').addEventListener('click', () => {
+            this.toggleStudentLeave(student.id);
+        });
+
+        // NEW: delete student button
+        card.querySelector('.student-action-btn.delete-student').addEventListener('click', (ev) => {
+            ev.stopPropagation(); // prevent selecting the card
+            this.deleteStudent(student.id);
+        });
+
+        const predefinedNotesSelect = card.querySelector('.predefined-notes-select');
+        predefinedNotesSelect.addEventListener('change', (event) => {
+            if (student.onLeave) {
+                this.showToast(`${student.name} 請假中，無法記錄特殊表現`);
+                event.target.value = ''; 
+                return;
+            }
+
+            const selectedBehavior = event.target.value;
+            if (selectedBehavior) { 
+                const now = new Date();
+                const formattedDate = now.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/'); 
+                const newNoteEntry = `${formattedDate} ${selectedBehavior}`;
+
+                if (student.notes.trim() === '') {
+                    student.notes = newNoteEntry;
+                } else {
+                    student.notes += `\n${newNoteEntry}`;
+                }
+                
+                card.querySelector('.student-notes-input').value = student.notes;
+                this.saveData();
+                this.showToast(`${student.name} 的特殊表現已更新：${selectedBehavior}`);
+            }
+            event.target.value = ''; 
+        });
+
+        const notesInput = card.querySelector('.student-notes-input');
+        notesInput.addEventListener('change', (event) => { 
+            if (!student.onLeave) {
+                student.notes = event.target.value;
+                this.saveData();
+                this.showToast(`${student.name} 的特殊表現已更新`);
+            } else {
+                this.showToast(`${student.name} 請假中，無法記錄特殊表現`);
+                event.target.value = student.notes; 
+            }
+        });
+
+        const toggleNotesCheckbox = card.querySelector('.toggle-notes-checkbox');
+        const notesContentWrapper = card.querySelector('.notes-content-wrapper');
+        toggleNotesCheckbox.addEventListener('change', () => {
+            if (toggleNotesCheckbox.checked) {
+                notesContentWrapper.classList.remove('hidden');
+            } else {
+                notesContentWrapper.classList.add('hidden');
+            }
+        });
+
+        return card;
+    }
+
+    loadData() {
+        try {
+            const data = localStorage.getItem('studentManagerData');
+            if (data) {
+                const parsedData = JSON.parse(data);
+                this.classes = parsedData.classes || [];
+                this.currentClassId = parsedData.currentClassId || null;
+                this.predefinedBehaviors = parsedData.predefinedBehaviors || this.predefinedBehaviors;
+                this.predefinedImportantInfos = parsedData.predefinedImportantInfos || this.predefinedImportantInfos;
+                this.predefinedHomeworks = parsedData.predefinedHomeworks || this.predefinedHomeworks;
+                this.studentsPerRow = parsedData.studentsPerRow || this.studentsPerRow;
+                this.selectedHomeworkItem = parsedData.selectedHomeworkItem || null;
+            }
+        } catch (e) {
+            console.error("Error loading data from localStorage:", e);
+        }
+    }
+
+    saveData() {
+        const dataToSave = {
+            classes: this.classes,
+            currentClassId: this.currentClassId,
+            predefinedBehaviors: this.predefinedBehaviors,
+            predefinedImportantInfos: this.predefinedImportantInfos,
+            predefinedHomeworks: this.predefinedHomeworks,
+            studentsPerRow: this.studentsPerRow,
+            selectedHomeworkItem: this.selectedHomeworkItem,
+        };
+        try {
+            localStorage.setItem('studentManagerData', JSON.stringify(dataToSave));
+            console.log('Data saved successfully.');
+        } catch (e) {
+            console.error("Error saving data to localStorage:", e);
+        }
+    }
+
+    // --- Utility Methods ---
+
+    showToast(message, duration = 3000) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+
+        toast.textContent = message;
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    }
+
+    updateCurrentDate() {
+        const dateElement = document.getElementById('current-date');
+        const today = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        dateElement.textContent = today.toLocaleDateString('zh-TW', options);
+    }
+
+    updateTotalClassScore() {
+        const totalScoreElement = document.getElementById('total-class-score');
+        const currentClass = this.getCurrentClass();
+        if (currentClass) {
+            const totalScore = currentClass.students.reduce((sum, student) => sum + student.score, 0);
+            totalScoreElement.textContent = totalScore;
+        } else {
+            totalScoreElement.textContent = '0';
+        }
+    }
+
+    updateClassInfoDisplay() {
+        const classDisplayName = document.getElementById('class-display-name');
+        const currentClass = this.getCurrentClass();
+        if (currentClass) {
+            classDisplayName.textContent = `班級：${currentClass.name}`;
+            this.drawingClassNameSpan.textContent = currentClass.name; // Update drawing modal class name
+            this.classStudentCountSpan.textContent = currentClass.students.length; // Update student count display
+        } else {
+            classDisplayName.textContent = '班級：未選擇';
+            this.drawingClassNameSpan.textContent = '未選擇';
+            this.classStudentCountSpan.textContent = '0'; // Update student count display
+        }
+    }
+
+    getCurrentClass() {
+        return this.classes.find(cls => cls.id === this.currentClassId);
+    }
+
+    getStudentHomeworkSummaryForDate(studentId, dateKey) {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass || !currentClass.homeworkCheckEntries[dateKey]) {
+            return { notSubmitted: 0, toBeCorrected: 0 };
+        }
+
+        const dateEntry = currentClass.homeworkCheckEntries[dateKey];
+        let notSubmitted = 0;
+        let toBeCorrected = 0;
+
+        for (const homeworkItem in dateEntry) {
+            if (Object.hasOwnProperty.call(dateEntry, homeworkItem)) {
+                const studentStatusEntry = dateEntry[homeworkItem][studentId];
+                if (studentStatusEntry) {
+                    if (studentStatusEntry.status === 'not-submitted') {
+                        notSubmitted++;
+                    } else if (studentStatusEntry.status === 'to-be-corrected') {
+                        toBeCorrected++;
+                    }
+                }
+            }
+        }
+        return { notSubmitted, toBeCorrected };
+    }
+
+    // --- Class Management ---
+
+    renderClassSelector() {
+        const classSelect = document.getElementById('class-select');
+        classSelect.innerHTML = ''; // Clear existing options
+
+        if (this.classes.length === 0) {
+            classSelect.innerHTML = '<option value="">無班級</option>';
+            classSelect.disabled = true;
+            document.getElementById('delete-class-btn').disabled = true;
+            return;
+        }
+
+        classSelect.disabled = false;
+        document.getElementById('delete-class-btn').disabled = false;
+
+        this.classes.forEach(cls => {
+            const option = document.createElement('option');
+            option.value = cls.id;
+            option.textContent = cls.name;
+            classSelect.appendChild(option);
+        });
+
+        // Set the current class as selected in the dropdown
+        if (this.currentClassId) {
+            classSelect.value = this.currentClassId;
+        } else if (this.classes.length > 0) {
+            this.currentClassId = this.classes[0].id; // Default to the first class if none selected
+            classSelect.value = this.currentClassId;
+            this.saveData();
+        }
+        this.updateClassInfoDisplay();
+    }
+
+    switchClass(classId) {
+        this.currentClassId = parseInt(classId, 10);
+        this.saveData();
+        this.renderStudents();
+        this.updateClassInfoDisplay();
+        this.showToast(`已切換至班級：${this.getCurrentClass().name}`);
+
+        // Reset drawing state when switching class
+        this.resetDrawing();
+    }
+
+    addClass() {
+        const className = prompt('請輸入新班級名稱：');
+        if (className && className.trim() !== '') {
+            if (this.classes.some(cls => cls.name === className.trim())) {
+                this.showToast('班級名稱已存在，請使用不同名稱。', 3000);
+                return;
+            }
+            const newClass = {
+                id: Date.now(),
+                name: className.trim(),
+                students: [], // New classes start with no students
+                contactBookEntries: {},
+                homeworkCheckEntries: {}
+            };
+            this.classes.push(newClass);
+            this.currentClassId = newClass.id;
+            this.saveData();
+            this.renderClassSelector();
+            this.renderStudents(); // Re-render to show empty grid or new students
+            this.showToast(`已新增班級：${className}`);
+        }
+    }
+
+    deleteClass() {
+        if (this.classes.length <= 1) {
+            this.showToast('至少需要保留一個班級。', 3000);
+            return;
+        }
+
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) return;
+
+        if (confirm(`確定要刪除班級「${currentClass.name}」嗎？所有學生資料也將被刪除！`)) {
+            this.classes = this.classes.filter(cls => cls.id !== currentClass.id);
+
+            // After deletion, set currentClassId to the first available class
+            if (this.classes.length > 0) {
+                this.currentClassId = this.classes[0].id;
+            } else {
+                this.currentClassId = null; // No classes left
+            }
+
+            this.saveData();
+            this.renderClassSelector();
+            this.renderStudents();
+            this.showToast(`班級「${currentClass.name}」已刪除。`);
+        }
+    }
+
+    // --- Student Actions ---
+
+    selectStudent(studentId) {
+        const studentCards = document.querySelectorAll('.student-card');
+        studentCards.forEach(card => card.classList.remove('selected'));
+
+        const selectedCard = document.querySelector(`[data-student-id="${studentId}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+            this.selectedStudent = {
+                id: studentId,
+                classId: this.currentClassId
+            };
+        } else {
+            this.selectedStudent = null;
+        }
+    }
+
+    updateStudentScore(studentId, points, actionDescription) {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) return;
+
+        const student = currentClass.students.find(s => s.id === studentId);
+        if (student) {
+            student.score += points;
+            
+            const now = new Date();
+            const formattedTime = now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+            student.actions.push({
+                timestamp: now.toISOString(),
+                description: `${formattedTime} ${actionDescription}`
+            });
+
+            this.saveData();
+            this.renderStudents(); // Re-render to update score and potentially highlight selected card
+        }
+    }
+
+    toggleStudentLeave(studentId) {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) return;
+
+        const student = currentClass.students.find(s => s.id === studentId);
+        if (student) {
+            student.onLeave = !student.onLeave;
+            
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/');
+            const actionText = student.onLeave ? '請假' : '返校';
+            const newNoteEntry = `${formattedDate} ${actionText}`;
+
+            if (student.notes.trim() === '') {
+                student.notes = newNoteEntry;
+            } else {
+                student.notes += `\n${newNoteEntry}`;
+            }
+
+            this.saveData();
+            this.renderStudents(); 
+            this.showToast(`${student.name} 已${actionText}。`);
+        }
+    }
+
+    // NEW: Delete a student from the current class
+    deleteStudent(studentId) {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) return;
+        const student = currentClass.students.find(s => s.id === studentId);
+        if (!student) return;
+
+        if (!confirm(`確定要刪除學生「${student.name}」嗎？此操作無法復原。`)) return;
+
+        currentClass.students = currentClass.students.filter(s => s.id !== studentId);
+
+        // Clean up drawn lists and homework entries referencing this student
+        this.overallDrawnStudents = this.overallDrawnStudents.filter(id => id !== studentId);
+        for (const dateKey in currentClass.homeworkCheckEntries) {
+            if (Object.hasOwnProperty.call(currentClass.homeworkCheckEntries, dateKey)) {
+                for (const homeworkItem in currentClass.homeworkCheckEntries[dateKey]) {
+                    if (Object.hasOwnProperty.call(currentClass.homeworkCheckEntries[dateKey], homeworkItem)) {
+                        delete currentClass.homeworkCheckEntries[dateKey][homeworkItem][studentId];
+                    }
+                }
+            }
+        }
+
+        this.saveData();
+        this.renderStudents();
+        this.showToast(`學生「${student.name}」已刪除。`);
+    }
+
+    // --- File Operations ---
+
+    addStudentsFromText() {
+        const text = this.addStudentsTextarea.value || '';
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+        if (lines.length === 0) {
+            this.showToast('請在文字框中輸入至少一位學生姓名。', 2000);
+            return;
+        }
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) {
+            this.showToast('請先新增或選擇一個班級。', 3000);
+            return;
+        }
+        const newStudents = lines.map((name, index) => ({
+            id: Date.now() + Math.random() + index,
+            name: name,
+            score: 0,
+            actions: [],
+            avatar: name.charAt(0),
+            notes: '',
+            onLeave: false
+        }));
+        currentClass.students = [...currentClass.students, ...newStudents];
+        this.saveData();
+        this.renderStudents();
+        this.addStudentsTextWrapper.style.display = 'none';
+        this.addStudentsTextarea.value = '';
+        this.showToast(`已加入 ${newStudents.length} 位學生至「${currentClass.name}」。`);
+    }
+
+    importAllData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData && importedData.classes) {
+                    this.classes = importedData.classes;
+                    this.currentClassId = importedData.currentClassId || (this.classes.length > 0 ? this.classes[0].id : null);
+                    this.predefinedBehaviors = importedData.predefinedBehaviors || this.predefinedBehaviors;
+                    this.predefinedImportantInfos = importedData.predefinedImportantInfos || this.predefinedImportantInfos;
+                    this.predefinedHomeworks = importedData.predefinedHomeworks || this.predefinedHomeworks;
+                    this.studentsPerRow = importedData.studentsPerRow || this.studentsPerRow;
+                    this.selectedHomeworkItem = importedData.selectedHomeworkItem || null;
+                    this.saveData();
+                    this.renderClassSelector();
+                    this.renderStudents();
+                    this.showToast('所有資料已成功匯入！');
+                } else {
+                    this.showToast('匯入的資料格式不正確。', 3000);
+                }
+            } catch (error) {
+                console.error('Error parsing imported data:', error);
+                this.showToast('匯入檔案解析失敗，請確認檔案格式。', 3000);
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = null; // Clear input for next import
+    }
+
+    exportAllData() {
+        const data = {
+            classes: this.classes,
+            currentClassId: this.currentClassId,
+            predefinedBehaviors: this.predefinedBehaviors,
+            predefinedImportantInfos: this.predefinedImportantInfos,
+            predefinedHomeworks: this.predefinedHomeworks,
+            studentsPerRow: this.studentsPerRow,
+            selectedHomeworkItem: this.selectedHomeworkItem,
+        };
+        const jsonData = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'student_manager_data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.showToast('所有資料已匯出 (JSON)。');
+    }
+
+    async exportAllDataToExcel() {
+        if (this.classes.length === 0) {
+            this.showToast('沒有班級資料可匯出。', 3000);
+            return;
+        }
+
+        const wb = XLSX.utils.book_new(); // Use global XLSX object
+
+        this.classes.forEach(cls => {
+            // Prepare student data for the current class
+            const studentsData = cls.students.map(student => ({
+                '學生ID': student.id,
+                '姓名': student.name,
+                '分數': student.score,
+                '是否請假': student.onLeave ? '是' : '否',
+                '特殊表現記錄': student.notes
+                // Add more student fields if necessary
+            }));
+
+            // Create a worksheet for students
+            const wsStudents = XLSX.utils.json_to_sheet(studentsData);
+            XLSX.utils.book_append_sheet(wb, wsStudents, `${cls.name} 學生`);
+
+            // Prepare contact book data for the current class
+            const contactBookEntries = Object.entries(cls.contactBookEntries).map(([date, entry]) => ({
+                '日期': date,
+                '重要資訊': entry.importantInfo,
+                '回家作業': entry.homework
+            }));
+            if (contactBookEntries.length > 0) {
+                const wsContactBook = XLSX.utils.json_to_sheet(contactBookEntries);
+                XLSX.utils.book_append_sheet(wb, wsContactBook, `${cls.name} 連絡簿`);
+            }
+
+            // Prepare homework check data for the current class
+            const homeworkCheckRows = [];
+            for (const dateKey in cls.homeworkCheckEntries) {
+                if (Object.hasOwnProperty.call(cls.homeworkCheckEntries, dateKey)) {
+                    const dateEntry = cls.homeworkCheckEntries[dateKey];
+                    for (const homeworkItem in dateEntry) {
+                        if (Object.hasOwnProperty.call(dateEntry, homeworkItem)) {
+                            const row = {
+                                '日期': dateKey,
+                                '作業名稱': homeworkItem
+                            };
+                            cls.students.forEach(student => {
+                                const status = dateEntry[homeworkItem][student.id]?.status;
+                                row[student.name] = this.homeworkStatusDisplayText[status] || '';
+                            });
+                            homeworkCheckRows.push(row);
+                        }
+                    }
+                }
+            }
+            if (homeworkCheckRows.length > 0) {
+                const wsHomeworkCheck = XLSX.utils.json_to_sheet(homeworkCheckRows);
+                XLSX.utils.book_append_sheet(wb, wsHomeworkCheck, `${cls.name} 作業檢查`);
+            }
+        });
+
+        // Add a worksheet for predefined settings and other general app settings
+        const settingsData = [
+            { '類型': '特殊表現', '選項': this.predefinedBehaviors.join('\n') },
+            { '類型': '重要資訊', '選項': this.predefinedImportantInfos.join('\n') },
+            { '類型': '回家作業', '選項': this.predefinedHomeworks.join('\n') },
+            { '類型': '每列學生數', '選項': this.studentsPerRow.toString() },
+            { '類型': '最後選擇作業項目', '選項': this.selectedHomeworkItem || '' }
+        ];
+        const wsSettings = XLSX.utils.json_to_sheet(settingsData);
+        XLSX.utils.book_append_sheet(wb, wsSettings, '系統設定');
+
+        XLSX.writeFile(wb, '學生表現管理系統_所有資料.xlsx'); // Use global XLSX object
+        this.showToast('所有資料已匯出 (Excel)。');
+    }
+
+    async importAllDataFromExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' }); // Use global XLSX object
+
+                const importedClasses = [];
+                let importedPredefinedBehaviors = [];
+                let importedPredefinedImportantInfos = [];
+                let importedPredefinedHomeworks = [];
+                let importedStudentsPerRow = this.studentsPerRow; // Default to current if not found
+                let importedSelectedHomeworkItem = this.selectedHomeworkItem; // Default to current if not found
+                let currentClassIdAfterImport = null;
+
+                // Process settings sheet first
+                const settingsSheetName = workbook.SheetNames.find(name => name.includes('系統設定'));
+                if (settingsSheetName) {
+                    const ws = workbook.Sheets[settingsSheetName];
+                    const json = XLSX.utils.sheet_to_json(ws);
+                    json.forEach(row => {
+                        if (row['類型'] === '特殊表現' && row['選項']) {
+                            importedPredefinedBehaviors = row['選項'].split('\n').map(s => s.trim()).filter(s => s !== '');
+                        } else if (row['類型'] === '重要資訊' && row['選項']) {
+                            importedPredefinedImportantInfos = row['選項'].split('\n').map(s => s.trim()).filter(s => s !== '');
+                        } else if (row['類型'] === '回家作業' && row['選項']) {
+                            importedPredefinedHomeworks = row['選項'].split('\n').map(s => s.trim()).filter(s => s !== '');
+                        } else if (row['類型'] === '每列學生數' && row['選項']) {
+                            const parsedNum = parseInt(row['選項'], 10);
+                            if (!isNaN(parsedNum) && parsedNum >= 2 && parsedNum <= 6) {
+                                importedStudentsPerRow = parsedNum;
+                            }
+                        } else if (row['類型'] === '最後選擇作業項目' && row['選項']) {
+                            importedSelectedHomeworkItem = row['選項'];
+                        }
+                    });
+                }
+
+                // Iterate through sheets to find classes and their data
+                for (const sheetName of workbook.SheetNames) {
+                    if (sheetName.includes('學生')) {
+                        const className = sheetName.replace(' 學生', '').trim();
+                        const ws = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(ws);
+
+                        const students = json.map(row => ({
+                            id: row['學生ID'] || Date.now() + Math.random(), // Generate ID if not present
+                            name: row['姓名'],
+                            score: parseInt(row['分數'] || 0, 10),
+                            actions: [], // Actions are not typically imported as they are historical
+                            avatar: (row['姓名'] ? row['姓名'].charAt(0) : '?'),
+                            notes: row['特殊表現記錄'] || '',
+                            onLeave: row['是否請假'] === '是'
+                        })).filter(s => s.name); // Filter out students without names
+
+                        if (students.length > 0) {
+                            const newClass = {
+                                id: Date.now() + Math.random(),
+                                name: className,
+                                students: students,
+                                contactBookEntries: {},
+                                homeworkCheckEntries: {}
+                            };
+                            importedClasses.push(newClass);
+                        }
+                    }
+                }
+
+                // Now, re-iterate to add contact book and homework data to the imported classes
+                for (const sheetName of workbook.SheetNames) {
+                    if (sheetName.includes('連絡簿')) {
+                        const className = sheetName.replace(' 連絡簿', '').trim();
+                        const targetClass = importedClasses.find(c => c.name === className);
+                        if (targetClass) {
+                            const ws = workbook.Sheets[sheetName];
+                            const json = XLSX.utils.sheet_to_json(ws);
+                            json.forEach(row => {
+                                if (row['日期'] && (row['重要資訊'] || row['回家作業'])) {
+                                    targetClass.contactBookEntries[row['日期']] = {
+                                        importantInfo: row['重要資訊'] || '',
+                                        homework: row['回家作業'] || ''
+                                    };
+                                }
+                            });
+                        }
+                    } else if (sheetName.includes('作業檢查')) {
+                        const className = sheetName.replace(' 作業檢查', '').trim();
+                        const targetClass = importedClasses.find(c => c.name === className);
+                        if (targetClass) {
+                            const ws = workbook.Sheets[sheetName];
+                            const json = XLSX.utils.sheet_to_json(ws);
+                            json.forEach(row => {
+                                const dateKey = row['日期'];
+                                const homeworkItem = row['作業名稱'];
+                                if (dateKey && homeworkItem) {
+                                    if (!targetClass.homeworkCheckEntries[dateKey]) {
+                                        targetClass.homeworkCheckEntries[dateKey] = {};
+                                    }
+                                    if (!targetClass.homeworkCheckEntries[dateKey][homeworkItem]) {
+                                        targetClass.homeworkCheckEntries[dateKey][homeworkItem] = {};
+                                    }
+                                    targetClass.students.forEach(student => {
+                                        const statusText = row[student.name];
+                                        const status = this.homeworkStatusReverseMap[statusText] || 'submitted'; // Default to submitted
+                                        targetClass.homeworkCheckEntries[dateKey][homeworkItem][student.id] = { status: status };
+                                    });
+                                }
+                            });
+                        }
+                    }
+                }
+
+                if (importedClasses.length > 0) {
+                    this.classes = importedClasses;
+                    this.currentClassId = importedClasses[0].id; // Set current class to the first imported one
+                    currentClassIdAfterImport = importedClasses[0].id; // Store this for later use
+
+                    if (importedPredefinedBehaviors.length > 0) this.predefinedBehaviors = importedPredefinedBehaviors;
+                    if (importedPredefinedImportantInfos.length > 0) this.predefinedImportantInfos = importedPredefinedImportantInfos;
+                    if (importedPredefinedHomeworks.length > 0) this.predefinedHomeworks = importedPredefinedHomeworks;
+                    
+                    this.studentsPerRow = importedStudentsPerRow; // Update students per row
+                    this.selectedHomeworkItem = importedSelectedHomeworkItem; // Update selected homework item
+
+                    this.saveData();
+                    this.renderClassSelector();
+                    this.renderStudents();
+                    this.initializeStudentsPerRowSelect(); // Re-initialize the select dropdown
+                    this.showToast('所有資料已成功從 Excel 匯入！');
+                } else {
+                    this.showToast('從 Excel 檔案中找不到有效的班級資料。', 3000);
+                }
+
+            } catch (error) {
+                console.error('Error importing Excel data:', error);
+                this.showToast('匯入 Excel 檔案失敗，請確認檔案格式。', 3000);
+            } finally {
+                event.target.value = null; // Clear input for next import
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // --- Drawing Modal ---
+
+    openDrawingModal() {
+        this.drawingModal.classList.add('show');
+        this.prepareDrawing();
+    }
+
+    closeDrawingModal() {
+        this.drawingModal.classList.remove('show');
+    }
+
+    prepareDrawing() {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass || currentClass.students.length === 0) {
+            this.drawingClassNameSpan.textContent = '無可用班級';
+            this.drawingAvailableCountSpan.textContent = '0';
+            this.numToDrawInput.disabled = true;
+            this.startDrawBtn.disabled = true;
+            this.resetDrawBtn.disabled = true;
+            this.drawnStudentDisplay.innerHTML = '<p class="placeholder-text">班級中沒有學生可供抽籤</p>';
+            this.drawnStudentsList.innerHTML = '';
+            return;
+        }
+
+        // Filter out students who are on leave
+        this.availableForDraw = currentClass.students.filter(s => !s.onLeave && !this.overallDrawnStudents.includes(s.id));
+        this.drawingClassNameSpan.textContent = currentClass.name;
+        this.drawingAvailableCountSpan.textContent = this.availableForDraw.length;
+        this.numToDrawInput.max = this.availableForDraw.length > 0 ? this.availableForDraw.length : 1;
+        this.numToDrawInput.disabled = this.availableForDraw.length === 0;
+        this.startDrawBtn.disabled = this.availableForDraw.length === 0;
+        this.resetDrawBtn.disabled = this.overallDrawnStudents.length === 0;
+
+        this.renderDrawnStudentsList();
+    }
+
+    startDrawing() {
+        if (this.availableForDraw.length === 0) {
+            this.showToast('沒有學生可供抽籤了！', 2000);
+            return;
+        }
+
+        const numToDraw = Math.min(parseInt(this.numToDrawInput.value, 10) || 1, this.availableForDraw.length);
+        if (numToDraw <= 0) return;
+
+        const drawnStudentsThisRound = [];
+        for (let i = 0; i < numToDraw; i++) {
+            const randomIndex = Math.floor(Math.random() * this.availableForDraw.length);
+            const drawnStudent = this.availableForDraw.splice(randomIndex, 1)[0]; // Remove from available
+            drawnStudentsThisRound.push(drawnStudent);
+            this.overallDrawnStudents.push(drawnStudent.id); // Add to overall drawn list
+        }
+
+        this.drawnStudentDisplay.innerHTML = drawnStudentsThisRound.map(s => `<p class="drawn-name">${s.name}</p>`).join('');
+        this.renderStudents(); // Re-render main grid to highlight drawn students
+        this.renderDrawnStudentsList();
+        this.prepareDrawing(); // Update available count and button states
+        this.playSound('draw');
+    }
+
+    resetDrawing() {
+        this.overallDrawnStudents = [];
+        this.drawnStudentDisplay.innerHTML = '<p class="placeholder-text">點擊「開始抽籤」</p>';
+        this.renderStudents(); // Remove drawn highlights from main grid
+        this.prepareDrawing(); // Reset available students and counts
+        this.showToast('抽籤狀態已重置。');
+    }
+
+    renderDrawnStudentsList() {
+        this.drawnStudentsList.innerHTML = '';
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) return;
+
+        this.overallDrawnStudents.forEach(studentId => {
+            const student = currentClass.students.find(s => s.id === studentId);
+            if (student) {
+                const li = document.createElement('li');
+                li.textContent = student.name;
+                this.drawnStudentsList.appendChild(li);
+            }
+        });
+    }
+
+    // --- Countdown Modal ---
+
+    openCountdownModal() {
+        this.countdownModal.classList.add('show');
+        this.updateCountdownDisplay();
+    }
+
+    closeCountdownModal() {
+        this.countdownModal.classList.remove('show');
+        this.stopCountdown();
+    }
+
+    updateCountdownDisplay() {
+        const minutes = parseInt(this.countdownMinutesInput.value, 10);
+        const seconds = parseInt(this.countdownSecondsInput.value, 10);
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+        this.countdownDisplay.textContent = `${formattedMinutes}:${formattedSeconds}`;
+    }
+
+    startCountdown() {
+        if (this.countdownInterval) return;
+
+        let totalSeconds = parseInt(this.countdownMinutesInput.value, 10) * 60 + parseInt(this.countdownSecondsInput.value, 10);
+        if (totalSeconds <= 0) {
+            this.showToast('請設定有效的倒數時間。', 2000);
+            return;
+        }
+
+        this.startCountdownBtn.disabled = true;
+        this.pauseCountdownBtn.disabled = false;
+        this.countdownControlBtns.forEach(btn => btn.disabled = true); // Disable manual input controls
+
+        this.countdownInterval = setInterval(() => {
+            totalSeconds--;
+            if (totalSeconds < 0) {
+                this.stopCountdown();
+                this.countdownDisplay.textContent = '00:00';
+                this.playSound('countdown');
+                this.showToast('倒數計時結束！', 3000);
+                return;
+            }
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            this.countdownMinutesInput.value = minutes;
+            this.countdownSecondsInput.value = seconds;
+            this.updateCountdownDisplay();
+        }, 1000);
+    }
+
+    pauseCountdown() {
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+            this.startCountdownBtn.disabled = false;
+            this.pauseCountdownBtn.disabled = true;
+            this.countdownControlBtns.forEach(btn => btn.disabled = false); // Re-enable manual input controls
+            this.showToast('倒數計時已暫停。');
+        }
+    }
+
+    resetCountdown() {
+        this.stopCountdown();
+        this.countdownMinutesInput.value = 5;
+        this.countdownSecondsInput.value = 0;
+        this.updateCountdownDisplay();
+        this.startCountdownBtn.disabled = false;
+        this.pauseCountdownBtn.disabled = true;
+        this.countdownControlBtns.forEach(btn => btn.disabled = false); // Re-enable manual input controls
+        this.showToast('倒數計時已重置。');
+    }
+
+    stopCountdown() {
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+    }
+
+    // --- Contact Book Modal ---
+
+    openContactBookModal() {
+        this.contactBookModal.classList.add('show');
+        this.currentContactBookDate = new Date(); // Reset to current date on open
+        this.renderContactBook();
+        this.populatePredefinedContactBookOptions();
+    }
+
+    closeContactBookModal() {
+        this.contactBookModal.classList.remove('show');
+    }
+
+    renderContactBook() {
+        const formattedDateKey = this.formatDateForStorage(this.currentContactBookDate);
+        const currentClass = this.getCurrentClass();
+        const entry = currentClass?.contactBookEntries?.[formattedDateKey] || { importantInfo: '', homework: '' };
+
+        this.contactBookDateDisplay.textContent = this.currentContactBookDate.toLocaleDateString('zh-TW', {
+            year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+        });
+        this.importantInfoTextarea.value = entry.importantInfo;
+        this.homeworkTextarea.value = entry.homework;
+    }
+
+    changeContactBookDay(offset) {
+        this.currentContactBookDate.setDate(this.currentContactBookDate.getDate() + offset);
+        this.renderContactBook();
+    }
+
+    saveContactBookEntry() {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) {
+            this.showToast('請選擇一個班級。', 3000);
+            return;
+        }
+
+        const formattedDateKey = this.formatDateForStorage(this.currentContactBookDate);
+        currentClass.contactBookEntries[formattedDateKey] = {
+            importantInfo: this.importantInfoTextarea.value,
+            homework: this.homeworkTextarea.value
+        };
+        this.saveData();
+        this.showToast('連絡簿記錄已保存。');
+    }
+
+    populatePredefinedContactBookOptions() {
+        // Important Info
+        this.predefinedInfoSelect.innerHTML = '<option value="">請選擇重要資訊</option>' + 
+            this.predefinedImportantInfos.map(info => `<option value="${info}">${info}</option>`).join('');
+
+        // Homework
+        this.predefinedHomeworkSelect.innerHTML = '<option value="">請選擇回家作業</option>' + 
+            this.predefinedHomeworks.map(homework => `<option value="${homework}">${homework}</option>`).join('');
+    }
+
+    // --- Blackboard Modal ---
+
+    openBlackboardModal() {
+        this.blackboardModal.classList.add('show');
+        this.renderBlackboardContent();
+    }
+
+    closeBlackboardModal() {
+        this.blackboardModal.classList.remove('show');
+    }
+
+    renderBlackboardContent() {
+        const formattedDateKey = this.formatDateForStorage(this.currentContactBookDate);
+        const currentClass = this.getCurrentClass();
+        const entry = currentClass?.contactBookEntries?.[formattedDateKey] || { importantInfo: '無', homework: '無' };
+
+        this.blackboardDateDisplay.textContent = this.currentContactBookDate.toLocaleDateString('zh-TW', {
+            year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+        });
+        this.blackboardImportantInfoDisplay.textContent = entry.importantInfo || '無';
+        this.blackboardHomeworkDisplay.textContent = entry.homework || '無';
+    }
+
+    // --- Homework Check Modal ---
+
+    openHomeworkCheckModal() {
+        this.homeworkCheckModal.classList.add('show');
+        this.currentHomeworkCheckDate = new Date(); // Reset to current date on open
+        this.renderHomeworkCheck();
+        this.populateHomeworkToCheckSelect();
+    }
+
+    closeHomeworkCheckModal() {
+        this.homeworkCheckModal.classList.remove('show');
+    }
+
+    renderHomeworkCheck() {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass || currentClass.students.length === 0) {
+            this.homeworkCheckStudentsContainer.innerHTML = '<p class="no-students-message">班級中沒有學生。</p>';
+            this.homeworkCheckDateDisplay.textContent = this.currentHomeworkCheckDate.toLocaleDateString('zh-TW', {
+                year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+            });
+            this.homeworkToCheckSelect.disabled = true;
+            this.saveHomeworkCheckBtn.disabled = true;
+            return;
+        }
+
+        this.homeworkToCheckSelect.disabled = false;
+        this.saveHomeworkCheckBtn.disabled = false;
+
+        this.homeworkCheckDateDisplay.textContent = this.currentHomeworkCheckDate.toLocaleDateString('zh-TW', {
+            year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+        });
+
+        this.renderHomeworkCheckStudentGrid();
+    }
+
+    changeHomeworkCheckDay(offset) {
+        this.currentHomeworkCheckDate.setDate(this.currentHomeworkCheckDate.getDate() + offset);
+        this.renderHomeworkCheck();
+        this.populateHomeworkToCheckSelect(); // Update homework options for the new date
+    }
+
+    populateHomeworkToCheckSelect() {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) return;
+
+        const yesterday = new Date(this.currentHomeworkCheckDate);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayDateKey = this.formatDateForStorage(yesterday);
+        
+        const yesterdayContactBookEntry = currentClass.contactBookEntries[yesterdayDateKey];
+        const homeworkFromYesterdayFull = yesterdayContactBookEntry ? yesterdayContactBookEntry.homework : '';
+
+        // Clear previous options
+        this.homeworkToCheckSelect.innerHTML = '<option value="">請選擇或查看作業項目</option>';
+
+        const addedHomeworkItems = new Set(); // To track unique homework items added to the select
+
+        // Add homework items from yesterday's contact book
+        if (homeworkFromYesterdayFull.trim() !== '') {
+            const homeworkItems = homeworkFromYesterdayFull.split('\n').map(item => item.trim()).filter(item => item !== '');
+            homeworkItems.forEach(item => {
+                if (!addedHomeworkItems.has(item)) {
+                    this.homeworkToCheckSelect.innerHTML += `<option value="${item}" data-source="contact-book">前一天聯絡簿：${item}</option>`;
+                    addedHomeworkItems.add(item);
+                }
+            });
+        }
+        
+        // If a homework item was previously selected for *this date*, re-select it
+        if (this.selectedHomeworkItem && addedHomeworkItems.has(this.selectedHomeworkItem)) {
+            this.homeworkToCheckSelect.value = this.selectedHomeworkItem;
+        } else {
+             // If no homework selected or previous selection is no longer valid, default to nothing selected
+             this.homeworkToCheckSelect.value = '';
+        }
+        // Always re-render grid based on the (potentially new) selected value
+        this.renderHomeworkCheckStudentGrid();
+    }
+
+    renderHomeworkCheckStudentGrid() {
+        const currentClass = this.getCurrentClass();
+        this.homeworkCheckStudentsContainer.innerHTML = ''; // Clear previous students
+
+        if (!currentClass || currentClass.students.length === 0) {
+            this.homeworkCheckStudentsContainer.innerHTML = '<p class="no-students-message">班級中沒有學生。</p>';
+            return;
+        }
+
+        const selectedHomeworkValue = this.homeworkToCheckSelect.value;
+        this.selectedHomeworkItem = selectedHomeworkValue; // Keep track of the selected homework
+        this.saveData();
+
+        if (selectedHomeworkValue === '') {
+            currentClass.students.forEach(student => {
+                const cell = document.createElement('div');
+                cell.className = 'homework-student-cell disabled-for-homework';
+                cell.dataset.studentId = student.id;
+                cell.textContent = student.name;
+                this.homeworkCheckStudentsContainer.appendChild(cell);
+            });
+            return;
+        }
+
+        const formattedDateKey = this.formatDateForStorage(this.currentHomeworkCheckDate);
+        
+        // Ensure the homework entry exists for the selected item and date
+        if (!currentClass.homeworkCheckEntries[formattedDateKey]) {
+            currentClass.homeworkCheckEntries[formattedDateKey] = {};
+        }
+        if (!currentClass.homeworkCheckEntries[formattedDateKey][selectedHomeworkValue]) {
+            currentClass.homeworkCheckEntries[formattedDateKey][selectedHomeworkValue] = {};
+        }
+
+        currentClass.students.forEach(student => {
+            // Get or initialize student's homework status for the selected item
+            const studentHomeworkStatus = currentClass.homeworkCheckEntries[formattedDateKey][selectedHomeworkValue][student.id] || { status: 'submitted' };
+            const statusClass = `status-${studentHomeworkStatus.status}`;
+            const displayText = this.homeworkStatusDisplayText[studentHomeworkStatus.status];
+
+            const cell = document.createElement('div');
+            cell.className = `homework-student-cell ${statusClass}`;
+            cell.dataset.studentId = student.id;
+            cell.dataset.homeworkStatus = studentHomeworkStatus.status;
+            cell.title = student.name; // Use title for full name on hover
+            cell.innerHTML = `
+                <span>${student.name}</span><br>
+                <small>${displayText}</small>
+            `;
+            
+            cell.addEventListener('click', () => {
+                this.toggleHomeworkStatus(student.id, formattedDateKey, selectedHomeworkValue, cell);
+            });
+            this.homeworkCheckStudentsContainer.appendChild(cell);
+        });
+    }
+
+    toggleHomeworkStatus(studentId, dateKey, homeworkItem, cellElement) {
+        const currentClass = this.getCurrentClass();
+        if (!currentClass) return;
+
+        const currentStatus = cellElement.dataset.homeworkStatus;
+        const currentIndex = this.homeworkStatusCycle.indexOf(currentStatus);
+        const nextIndex = (currentIndex + 1) % this.homeworkStatusCycle.length;
+        const newStatus = this.homeworkStatusCycle[nextIndex];
+
+        currentClass.homeworkCheckEntries[dateKey][homeworkItem][studentId] = { status: newStatus };
+        this.saveData();
+
+        cellElement.classList.remove(`status-${currentStatus}`);
+        cellElement.classList.add(`status-${newStatus}`);
+        cellElement.dataset.homeworkStatus = newStatus;
+        cellElement.querySelector('small').textContent = this.homeworkStatusDisplayText[newStatus];
+        this.showToast(`${currentClass.students.find(s => s.id === studentId).name} 的作業狀態已更新為「${this.homeworkStatusDisplayText[newStatus]}」。`, 1500);
+        
+        // After changing status, re-render the main student grid to update homework summary on cards
+        this.renderStudents();
+    }
+
+    saveHomeworkCheckEntries() {
+        // Data is already saved on each toggle, so this button mainly serves as a "Done" or explicit save confirmation.
+        // Can add a check here if there are unsaved changes, but for now, it's just a confirmation.
+        this.showToast('作業檢查記錄已保存。');
+        this.closeHomeworkCheckModal();
+    }
+
+    // --- Settings Modal ---
+
+    openSettingsModal() {
+        this.settingsModal.classList.add('show');
+        this.predefinedBehaviorsInput.value = this.predefinedBehaviors.join('\n');
+        this.predefinedInfoInput.value = this.predefinedImportantInfos.join('\n');
+        this.predefinedHomeworkInput.value = this.predefinedHomeworks.join('\n');
+    }
+
+    closeSettingsModal() {
+        this.settingsModal.classList.remove('show');
+    }
+
+    saveSettings() {
+        this.predefinedBehaviors = this.predefinedBehaviorsInput.value.split('\n').map(s => s.trim()).filter(s => s !== '');
+        this.predefinedImportantInfos = this.predefinedInfoInput.value.split('\n').map(s => s.trim()).filter(s => s !== '');
+        this.predefinedHomeworks = this.predefinedHomeworkInput.value.split('\n').map(s => s.trim()).filter(s => s !== '');
+        this.saveData();
+        this.renderStudents(); // Re-render to update notes dropdowns
+        this.populatePredefinedContactBookOptions(); // Update contact book dropdowns
+        this.showToast('設定已保存。');
+        this.closeSettingsModal();
+    }
+
+    // --- Audio Playback ---
+    async loadSound(url, type) {
+        try {
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+            if (type === 'draw') {
+                this.drawSoundBuffer = audioBuffer;
+            } else if (type === 'countdown') {
+                this.countdownSoundBuffer = audioBuffer;
+            }
+        } catch (error) {
+            console.error(`Error loading sound ${url}:`, error);
+        }
+    }
+
+    playSound(type) {
+        let buffer = null;
+        if (type === 'draw' && this.drawSoundBuffer) {
+            buffer = this.drawSoundBuffer;
+        } else if (type === 'countdown' && this.countdownSoundBuffer) {
+            buffer = this.countdownSoundBuffer;
+        }
+
+        if (buffer) {
+            const source = this.audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(this.audioContext.destination);
+            source.start(0);
+        }
+    }
+
+    // --- Students Per Row ---
+    initializeStudentsPerRowSelect() {
+        document.getElementById('students-per-row-select').value = this.studentsPerRow;
+    }
+
+    setStudentsPerRow(numCols) {
+        this.studentsPerRow = numCols;
+        localStorage.setItem('studentsPerRow', numCols); // Save preference
+        this.renderStudents(); // Re-render the grid with new column count
+        this.showToast(`每列顯示 ${numCols} 位學生。`);
+    }
+
+    // --- Event Bindings ---
+
+    bindEvents() {
+        console.log('Binding events...');
+        // Class management
+        document.getElementById('class-select').addEventListener('change', (e) => this.switchClass(e.target.value));
+        document.getElementById('add-class-btn').addEventListener('click', () => this.addClass());
+        document.getElementById('delete-class-btn').addEventListener('click', () => this.deleteClass());
+
+        // Utility buttons
+        document.getElementById('draw-students-btn').addEventListener('click', () => this.openDrawingModal());
+        document.getElementById('countdown-btn').addEventListener('click', () => this.openCountdownModal());
+        document.getElementById('contact-book-btn').addEventListener('click', () => this.openContactBookModal());
+        document.getElementById('homework-check-btn').addEventListener('click', () => this.openHomeworkCheckModal());
+        document.getElementById('open-settings-btn').addEventListener('click', () => this.openSettingsModal());
+
+        // Settings save button (fix: ensure "儲存設定" works)
+        this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+
+        // File operations
+        document.getElementById('export-btn').addEventListener('click', () => this.exportAllData());
+        document.getElementById('import-data-btn').addEventListener('click', () => {
+            document.getElementById('data-file-input').click();
+        });
+        document.getElementById('data-file-input').addEventListener('change', (e) => this.importAllData(e));
+        // Excel export button (fixed: connect UI button to exportAllDataToExcel)
+        document.getElementById('export-excel-btn').addEventListener('click', () => this.exportAllDataToExcel());
+
+        // Add Students (text) button and dialog actions
+        this.addStudentsTextBtn.addEventListener('click', () => {
+            this.addStudentsTextWrapper.style.display = this.addStudentsTextWrapper.style.display === 'none' ? 'block' : 'none';
+            this.addStudentsTextarea.focus();
+        });
+        this.confirmAddStudentsBtn.addEventListener('click', () => this.addStudentsFromText());
+        this.cancelAddStudentsBtn.addEventListener('click', () => { this.addStudentsTextWrapper.style.display = 'none'; this.addStudentsTextarea.value = ''; });
+
+        // Display options
+        document.getElementById('students-per-row-select').addEventListener('change', (e) => this.setStudentsPerRow(parseInt(e.target.value, 10)));
+
+        // Drawing Modal events
+        this.drawingModalCloseBtn.addEventListener('click', () => this.closeDrawingModal());
+        this.startDrawBtn.addEventListener('click', () => this.startDrawing());
+        this.resetDrawBtn.addEventListener('click', () => this.resetDrawing());
+        this.numToDrawInput.addEventListener('change', () => this.prepareDrawing()); // Update max value if changed
+
+        // Countdown Modal events
+        this.countdownModalCloseBtn.addEventListener('click', () => this.closeCountdownModal());
+        this.startCountdownBtn.addEventListener('click', () => this.startCountdown());
+        this.pauseCountdownBtn.addEventListener('click', () => this.pauseCountdown());
+        this.resetCountdownBtn.addEventListener('click', () => this.resetCountdown());
+        this.countdownMinutesInput.addEventListener('input', () => this.updateCountdownDisplay());
+        this.countdownSecondsInput.addEventListener('input', () => this.updateCountdownDisplay());
+        this.countdownControlBtns.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const action = event.currentTarget.dataset.action;
+                const target = event.currentTarget.dataset.target;
+                if (target === 'minutes') {
+                    let minutes = parseInt(this.countdownMinutesInput.value, 10);
+                    minutes = action === 'increment' ? Math.min(minutes + 1, 99) : Math.max(minutes - 1, 0);
+                    this.countdownMinutesInput.value = minutes;
+                } else if (target === 'seconds') {
+                    let seconds = parseInt(this.countdownSecondsInput.value, 10);
+                    seconds = action === 'increment' ? Math.min(seconds + 1, 59) : Math.max(seconds - 1, 0);
+                    this.countdownSecondsInput.value = seconds;
+                }
+                this.updateCountdownDisplay();
+            });
+        });
+
+        // Contact Book Modal events
+        this.contactBookModalCloseBtn.addEventListener('click', () => this.closeContactBookModal());
+        this.prevDayBtn.addEventListener('click', () => this.changeContactBookDay(-1));
+        this.nextDayBtn.addEventListener('click', () => this.changeContactBookDay(1));
+        this.saveContactBookBtn.addEventListener('click', () => this.saveContactBookEntry());
+        this.predefinedInfoSelect.addEventListener('change', (e) => {
+            const selectedInfo = e.target.value;
+            if (selectedInfo) {
+                // Append selected info with a new line if textarea is not empty
+                this.importantInfoTextarea.value += (this.importantInfoTextarea.value.trim() !== '' ? '\n' : '') + selectedInfo;
+            }
+            e.target.value = ''; // Reset select after use
+        });
+        this.predefinedHomeworkSelect.addEventListener('change', (e) => {
+            const selectedHomework = e.target.value;
+            if (selectedHomework) {
+                // Append selected homework with a new line if textarea is not empty
+                this.homeworkTextarea.value += (this.homeworkTextarea.value.trim() !== '' ? '\n' : '') + selectedHomework;
+            }
+            e.target.value = ''; // Reset select after use
+        });
+        this.showBlackboardBtn.addEventListener('click', () => this.openBlackboardModal());
+
+        // Blackboard Modal events
+        this.blackboardModalCloseBtn.addEventListener('click', () => this.closeBlackboardModal());
+
+        // Homework Check Modal events
+        this.homeworkCheckModalCloseBtn.addEventListener('click', () => this.closeHomeworkCheckModal());
+        this.homeworkCheckPrevDayBtn.addEventListener('click', () => this.changeHomeworkCheckDay(-1));
+        this.homeworkCheckNextDayBtn.addEventListener('click', () => this.changeHomeworkCheckDay(1));
+        this.homeworkToCheckSelect.addEventListener('change', () => this.renderHomeworkCheckStudentGrid());
+        this.saveHomeworkCheckBtn.addEventListener('click', () => this.saveHomeworkCheckEntries());
+    }
+}
+
+// Instantiate the manager when the DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    const manager = new StudentManager();
+});
+
+// --- 拖曳換位功能 ---
+StudentManager.prototype.swapStudentsOrder = function(draggedId, targetId) {
+    const currentClass = this.getCurrentClass();
+    if (!currentClass) return;
+
+    const draggedIndex = currentClass.students.findIndex(s => s.id == draggedId);
+    const targetIndex = currentClass.students.findIndex(s => s.id == targetId);
+
+    if (draggedIndex >= 0 && targetIndex >= 0) {
+        const temp = currentClass.students[draggedIndex];
+        currentClass.students[draggedIndex] = currentClass.students[targetIndex];
+        currentClass.students[targetIndex] = temp;
+    }
+    this.saveData();
+    this.renderStudents();
+};
+
+// 在 renderStudents 內加入拖曳事件
+const _renderStudents = StudentManager.prototype.renderStudents;
+StudentManager.prototype.renderStudents = function() {
+    _renderStudents.apply(this, arguments);
+    const grid = document.getElementById('students-grid');
+    grid.querySelectorAll(".student-card").forEach(card => {
+        card.setAttribute("draggable", "true");
+
+        card.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", card.dataset.studentId);
+            card.classList.add("dragging");
+        });
+
+        card.addEventListener("dragend", () => {
+            card.classList.remove("dragging");
+        });
+
+        card.addEventListener("dragover", (e) => {
+            e.preventDefault();
+        });
+
+        card.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const draggedId = e.dataTransfer.getData("text/plain");
+            const targetId = card.dataset.studentId;
+            if (draggedId !== targetId) {
+                this.swapStudentsOrder(draggedId, targetId);
+            }
+        });
+    });
+};
+
+</script>
+</body>
+</html>
